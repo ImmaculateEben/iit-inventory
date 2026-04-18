@@ -48,11 +48,11 @@
                         @foreach($group['codes'] as $code)
                             @php
                                 $perm = $permissions->firstWhere('code', $code);
-                                $isSelected = $perm && in_array($perm->id, $selectedPermissions);
+                                $isSelected = $perm && in_array((string) $perm->id, array_map('strval', $selectedPermissions));
                             @endphp
                             @if($perm)
                             <label class="cursor-pointer select-none">
-                                <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="sr-only">
+                                <input wire:model.live="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="sr-only">
                                 <span class="inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 hover:shadow-sm {{ $isSelected ? $group['selected'] : $group['light'] }}">
                                     @if($isSelected)
                                     <svg class="-ml-0.5 mr-1.5 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
