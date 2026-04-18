@@ -9,13 +9,17 @@
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div class="lg:col-span-2 rounded-xl bg-white p-6 shadow-sm border border-gray-100">
-            <h3 class="text-base font-semibold text-gray-900 mb-4">Repair Details</h3>
+            <h3 class="text-base font-semibold text-gray-900 mb-4">{{ ucfirst($repairRecord->action_type ?? 'repair') }} Details</h3>
             <dl class="grid grid-cols-2 gap-4">
                 <div><dt class="text-xs font-medium text-gray-500 uppercase">Item</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->inventoryItem?->item_name }}</dd></div>
+                <div>
+                    <dt class="text-xs font-medium text-gray-500 uppercase">Action Type</dt>
+                    <dd class="mt-1"><span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ ($repairRecord->action_type ?? 'repair') === 'replacement' ? 'bg-orange-50 text-orange-700' : 'bg-blue-50 text-blue-700' }}">{{ ucfirst($repairRecord->action_type ?? 'repair') }}</span></dd>
+                </div>
                 <div><dt class="text-xs font-medium text-gray-500 uppercase">Reported By</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->createdBy?->name }}</dd></div>
-                <div><dt class="text-xs font-medium text-gray-500 uppercase">Component Repaired</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->component_repaired ?? '—' }}</dd></div>
-                <div><dt class="text-xs font-medium text-gray-500 uppercase">Repair Date</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->repair_date?->format('M d, Y') ?? '—' }}</dd></div>
-                <div class="col-span-2"><dt class="text-xs font-medium text-gray-500 uppercase">Repair Description</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->repair_description ?? $repairRecord->problem_description }}</dd></div>
+                <div><dt class="text-xs font-medium text-gray-500 uppercase">Component {{ ($repairRecord->action_type ?? 'repair') === 'replacement' ? 'Replaced' : 'Repaired' }}</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->component_repaired ?? '—' }}</dd></div>
+                <div><dt class="text-xs font-medium text-gray-500 uppercase">{{ ucfirst($repairRecord->action_type ?? 'repair') }} Date</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->repair_date?->format('M d, Y') ?? '—' }}</dd></div>
+                <div class="col-span-2"><dt class="text-xs font-medium text-gray-500 uppercase">{{ ucfirst($repairRecord->action_type ?? 'repair') }} Description</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->repair_description ?? $repairRecord->problem_description }}</dd></div>
                 @if($repairRecord->repair_notes)
                 <div class="col-span-2"><dt class="text-xs font-medium text-gray-500 uppercase">Repair Notes</dt><dd class="mt-1 text-sm text-gray-900">{{ $repairRecord->repair_notes }}</dd></div>
                 @endif

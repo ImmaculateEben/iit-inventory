@@ -16,6 +16,7 @@ class Create extends Component
     public bool $showItemDropdown = false;
 
     // Form fields
+    public string $action_type = 'repair';
     public string $component_repaired = '';
     public string $repair_description = '';
     public ?string $repair_date = null;
@@ -24,6 +25,7 @@ class Create extends Component
     {
         return [
             'inventory_item_id' => 'required|exists:inventory_items,id',
+            'action_type' => 'required|in:repair,replacement',
             'component_repaired' => 'required|string|max:200',
             'repair_description' => 'required|string|max:2000',
             'repair_date' => 'required|date',
@@ -68,6 +70,7 @@ class Create extends Component
 
         $repair = RepairRecord::create([
             'repair_number' => RepairRecord::generateNumber(),
+            'action_type' => $this->action_type,
             'inventory_item_id' => $this->inventory_item_id,
             'department_id' => $item->department_id,
             'component_repaired' => $this->component_repaired,
@@ -81,7 +84,7 @@ class Create extends Component
 
         AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
 
-        session()->flash('success', 'Repair record created.');
+        session()->flash('success', ucfirst($this->action_type) . ' record created.');
         return $this->redirect(route('repairs.index'), navigate: true);
     }
 
