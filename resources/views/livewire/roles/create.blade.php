@@ -73,7 +73,11 @@
                             @if($perm)
                             <label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition group">
                                 <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ $perm->name }}</span>
-                                <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0">
+                                <div class="relative">
+                                    <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="peer sr-only">
+                                    <div class="h-6 w-11 rounded-full bg-gray-300 peer-checked:bg-blue-600 transition-colors"></div>
+                                    <div class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5"></div>
+                                </div>
                             </label>
                             @endif
                         @endforeach
