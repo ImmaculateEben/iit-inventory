@@ -43,13 +43,13 @@
                 {{-- Administration --}}
                 <div class="border-l-4 border-l-purple-400 pl-4 sm:pl-5">
                     <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Administration</h4>
-                    <div class="flex flex-wrap gap-2.5">
+                    <div class="flex flex-wrap gap-3">
                         @foreach(['manage_users', 'manage_roles_permissions', 'view_audit_log'] as $code)
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) ? 'bg-purple-600 text-white border-purple-600 shadow-sm' : 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'"
-                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:ring-offset-1">
+                                :class="has({{ $perm->id }}) && '!bg-purple-600 !text-white !border-purple-600 shadow-sm'"
+                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
                             @endif
@@ -60,13 +60,13 @@
                 {{-- Inventory --}}
                 <div class="border-l-4 border-l-blue-400 pl-4 sm:pl-5">
                     <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Inventory</h4>
-                    <div class="flex flex-wrap gap-2.5">
+                    <div class="flex flex-wrap gap-3">
                         @foreach(['manage_inventory', 'archive_inventory', 'manage_categories', 'manage_departments', 'manage_custom_fields'] as $code)
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'"
-                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-1">
+                                :class="has({{ $perm->id }}) && '!bg-blue-600 !text-white !border-blue-600 shadow-sm'"
+                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
                             @endif
@@ -77,13 +77,13 @@
                 {{-- Operations --}}
                 <div class="border-l-4 border-l-green-400 pl-4 sm:pl-5">
                     <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Operations</h4>
-                    <div class="flex flex-wrap gap-2.5">
+                    <div class="flex flex-wrap gap-3">
                         @foreach(['issue_items', 'receive_returns', 'adjust_stock', 'manage_repairs'] as $code)
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) ? 'bg-green-600 text-white border-green-600 shadow-sm' : 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'"
-                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:ring-offset-1">
+                                :class="has({{ $perm->id }}) && '!bg-green-600 !text-white !border-green-600 shadow-sm'"
+                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-green-50 text-green-700 border-green-200 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
                             @endif
@@ -94,13 +94,13 @@
                 {{-- Reporting --}}
                 <div class="border-l-4 border-l-amber-400 pl-4 sm:pl-5">
                     <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">Reporting</h4>
-                    <div class="flex flex-wrap gap-2.5">
+                    <div class="flex flex-wrap gap-3">
                         @foreach(['view_dashboard', 'export_data', 'import_csv'] as $code)
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) ? 'bg-amber-600 text-white border-amber-600 shadow-sm' : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'"
-                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:ring-offset-1">
+                                :class="has({{ $perm->id }}) && '!bg-amber-600 !text-white !border-amber-600 shadow-sm'"
+                                class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
                             @endif
