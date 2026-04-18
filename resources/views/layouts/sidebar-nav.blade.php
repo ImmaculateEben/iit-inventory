@@ -6,7 +6,7 @@
     $navItems = [
         ['route' => 'dashboard', 'label' => 'Dashboard', 'permission' => 'view_dashboard', 'icon' => 'home'],
         ['route' => 'inventory.index', 'label' => 'Inventory', 'permission' => 'view_dashboard', 'icon' => 'inventory'],
-        ['route' => 'issues.index', 'label' => 'Issue Items', 'permission' => 'issue_items', 'icon' => 'issue'],
+        ['route' => 'issues.index', 'label' => 'Issues & Assignments', 'permission' => 'issue_items', 'icon' => 'issue'],
         ['route' => 'returns.index', 'label' => 'Returns', 'permission' => 'receive_returns', 'icon' => 'return'],
         ['route' => 'repairs.index', 'label' => 'Repairs', 'permission' => 'manage_repairs', 'icon' => 'repair'],
         ['route' => 'adjustments.index', 'label' => 'Stock Adjustments', 'permission' => 'adjust_stock', 'icon' => 'adjustment'],

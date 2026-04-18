@@ -133,32 +133,36 @@
             </div>
             @endif
 
-            {{-- Recent Issues --}}
-            @if($inventoryItem->issueRecords->count())
+            {{-- Issues & Assignments --}}
             <div class="rounded-xl bg-white shadow-sm border border-gray-100">
-                <div class="border-b border-gray-100 px-6 py-4"><h3 class="text-base font-semibold text-gray-900">Recent Issues</h3></div>
+                <div class="border-b border-gray-100 px-6 py-4"><h3 class="text-base font-semibold text-gray-900">Issues & Assignments ({{ $inventoryItem->issueRecords->count() }})</h3></div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50/50"><tr>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Type</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Qty</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Issued To</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Issued By</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Issued/Assigned To</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">By</th>
                         </tr></thead>
                         <tbody class="divide-y divide-gray-100">
-                            @foreach($inventoryItem->issueRecords as $issue)
+                            @forelse($inventoryItem->issueRecords as $issue)
                             <tr class="hover:bg-gray-50/50">
                                 <td class="px-6 py-3 text-sm text-gray-600">{{ $issue->issued_at->format('M d, Y') }}</td>
+                                <td class="px-6 py-3">
+                                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ ($issue->action_type ?? 'issue') === 'assign' ? 'bg-green-50 text-green-700' : 'bg-blue-50 text-blue-700' }}">{{ ucfirst($issue->action_type ?? 'issue') }}</span>
+                                </td>
                                 <td class="px-6 py-3 text-sm font-medium text-gray-900">{{ $issue->quantity }}</td>
                                 <td class="px-6 py-3 text-sm text-gray-600">{{ $issue->staff_name_snapshot ?? '—' }}</td>
                                 <td class="px-6 py-3 text-sm text-gray-600">{{ $issue->issuedBy?->name ?? '—' }}</td>
                             </tr>
-                            @endforeach
+                            @empty
+                            <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">No issue or assignment records yet.</td></tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-            @endif
 
             {{-- Repair History --}}
             @if($inventoryItem->repairRecords->count())

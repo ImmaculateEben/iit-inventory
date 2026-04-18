@@ -2,6 +2,8 @@
 
 namespace App\Livewire\Issues;
 
+use App\Enums\UnitStatus;
+use App\Models\AssetUnit;
 use App\Models\InventoryItem;
 use App\Models\IssueRecord;
 use App\Support\Audit\AuditLogger;
@@ -9,6 +11,9 @@ use Livewire\Component;
 
 class Create extends Component
 {
+    // Action type toggle
+    public string $action_type = 'issue';
+
     public string $inventory_item_id = '';
     public string $department_id = '';
     public string $staff_name = '';
@@ -23,21 +28,36 @@ class Create extends Component
     public bool $showStaffDropdown = false;
     public int $maxQuantity = 0;
     public string $selectedItemLabel = '';
+    public string $selectedTrackingMethod = '';
 
     protected function rules(): array
     {
-        return [
+        $rules = [
+            'action_type' => 'required|in:issue,assign',
             'inventory_item_id' => 'required|exists:inventory_items,id',
             'department_id' => 'required|exists:departments,id',
             'staff_name' => 'required|string|max:200',
-            'quantity' => 'required|integer|min:1',
             'note' => 'nullable|string|max:500',
         ];
+
+        if ($this->action_type === 'assign') {
+            $rules['asset_unit_id'] = 'required|exists:asset_units,id';
+        } else {
+            $rules['quantity'] = 'required|integer|min:1';
+        }
+
+        return $rules;
     }
 
     protected $messages = [
         'staff_name.required' => 'Enter the name of the person receiving the item.',
+        'asset_unit_id.required' => 'Please select an asset unit to assign.',
     ];
+
+    public function updatedActionType(): void
+    {
+        $this->clearItem();
+    }
 
     public function updatedItemSearch(): void
     {
@@ -51,11 +71,21 @@ class Create extends Component
 
         $this->inventory_item_id = (string) $item->id;
         $this->department_id = (string) $item->department_id;
-        $this->maxQuantity = $item->quantity_available;
-        $this->selectedItemLabel = $item->item_code . ' — ' . $item->item_name . ' (' . $item->quantity_available . ' available)';
-        $this->itemSearch = $this->selectedItemLabel;
+        $this->selectedTrackingMethod = $item->tracking_method->value ?? $item->tracking_method;
+
+        if ($this->action_type === 'issue') {
+            $this->maxQuantity = $item->quantity_available;
+            $label = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name . ' (' . $item->quantity_available . ' available)';
+        } else {
+            $availableUnits = $item->assetUnits()->where('unit_status', 'available')->count();
+            $label = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name . ' (' . $availableUnits . ' units available)';
+        }
+
+        $this->selectedItemLabel = $label;
+        $this->itemSearch = $label;
         $this->showItemDropdown = false;
         $this->quantity = 1;
+        $this->asset_unit_id = null;
     }
 
     public function clearItem(): void
@@ -63,8 +93,10 @@ class Create extends Component
         $this->inventory_item_id = '';
         $this->itemSearch = '';
         $this->selectedItemLabel = '';
+        $this->selectedTrackingMethod = '';
         $this->maxQuantity = 0;
         $this->quantity = 1;
+        $this->asset_unit_id = null;
     }
 
     public function updatedStaffSearch(): void
@@ -96,31 +128,66 @@ class Create extends Component
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
 
-        if ($item->quantity_available < $this->quantity) {
-            $this->addError('quantity', 'Not enough stock. Available: ' . $item->quantity_available);
-            return;
+        if ($this->action_type === 'assign') {
+            // Assign an individual asset unit
+            $unit = AssetUnit::where('id', $this->asset_unit_id)
+                ->where('inventory_item_id', $item->id)
+                ->where('unit_status', 'available')
+                ->firstOrFail();
+
+            $issue = IssueRecord::create([
+                'issue_number' => IssueRecord::generateNumber(),
+                'action_type' => 'assign',
+                'inventory_item_id' => $item->id,
+                'department_id' => $this->department_id,
+                'asset_unit_id' => $unit->id,
+                'staff_name_snapshot' => $this->staff_name,
+                'quantity' => 1,
+                'issued_by_user_id' => auth()->id(),
+                'issued_at' => now(),
+                'note' => $this->note ?: null,
+            ]);
+
+            $unit->update([
+                'unit_status' => UnitStatus::Issued,
+                'assigned_staff_name_snapshot' => $this->staff_name,
+            ]);
+
+            AuditLogger::log('item_assigned', IssueRecord::class, $issue->id, null, [
+                'item' => $item->item_name, 'unit' => $unit->asset_tag ?? $unit->serial_number, 'to' => $this->staff_name,
+            ]);
+
+            session()->flash('success', 'Item assigned successfully.');
+        } else {
+            // Issue quantity-based
+            if ($item->quantity_available < $this->quantity) {
+                $this->addError('quantity', 'Not enough stock. Available: ' . $item->quantity_available);
+                return;
+            }
+
+            $issue = IssueRecord::create([
+                'issue_number' => IssueRecord::generateNumber(),
+                'action_type' => 'issue',
+                'inventory_item_id' => $item->id,
+                'department_id' => $this->department_id,
+                'staff_name_snapshot' => $this->staff_name,
+                'quantity' => $this->quantity,
+                'asset_unit_id' => null,
+                'issued_by_user_id' => auth()->id(),
+                'issued_at' => now(),
+                'note' => $this->note ?: null,
+            ]);
+
+            $item->decrement('quantity_available', $this->quantity);
+            $item->increment('quantity_issued', $this->quantity);
+
+            AuditLogger::log('item_issued', IssueRecord::class, $issue->id, null, [
+                'item' => $item->item_name, 'qty' => $this->quantity, 'to' => $this->staff_name,
+            ]);
+
+            session()->flash('success', 'Item issued successfully.');
         }
 
-        $issue = IssueRecord::create([
-            'issue_number' => IssueRecord::generateNumber(),
-            'inventory_item_id' => $this->inventory_item_id,
-            'department_id' => $this->department_id,
-            'staff_name_snapshot' => $this->staff_name,
-            'quantity' => $this->quantity,
-            'asset_unit_id' => $this->asset_unit_id ?: null,
-            'issued_by_user_id' => auth()->id(),
-            'issued_at' => now(),
-            'note' => $this->note ?: null,
-        ]);
-
-        $item->decrement('quantity_available', $this->quantity);
-        $item->increment('quantity_issued', $this->quantity);
-
-        AuditLogger::log('item_issued', IssueRecord::class, $issue->id, null, [
-            'item' => $item->item_name, 'qty' => $this->quantity, 'to' => $this->staff_name,
-        ]);
-
-        session()->flash('success', 'Item issued successfully.');
         return $this->redirect(route('issues.index'), navigate: true);
     }
 
@@ -128,14 +195,29 @@ class Create extends Component
     {
         $items = collect();
         if (strlen($this->itemSearch) > 0 && !$this->inventory_item_id) {
-            $items = InventoryItem::where('is_active', true)
-                ->where('quantity_available', '>', 0)
+            $query = InventoryItem::where('is_active', true)
                 ->where(function ($q) {
                     $q->where('item_name', 'like', '%' . $this->itemSearch . '%')
                       ->orWhere('item_code', 'like', '%' . $this->itemSearch . '%');
-                })
-                ->orderBy('item_name')
-                ->limit(15)
+                });
+
+            if ($this->action_type === 'assign') {
+                // For assign, show items with individual tracking that have available units
+                $query->where('tracking_method', 'individual')
+                    ->whereHas('assetUnits', fn($q) => $q->where('unit_status', 'available'));
+            } else {
+                $query->where('quantity_available', '>', 0);
+            }
+
+            $items = $query->orderBy('item_name')->limit(15)->get();
+        }
+
+        // Available asset units for the selected item (assign mode)
+        $availableUnits = collect();
+        if ($this->action_type === 'assign' && $this->inventory_item_id) {
+            $availableUnits = AssetUnit::where('inventory_item_id', $this->inventory_item_id)
+                ->where('unit_status', 'available')
+                ->orderBy('asset_tag')
                 ->get();
         }
 
@@ -153,6 +235,7 @@ class Create extends Component
         return view('livewire.issues.create', [
             'filteredItems' => $items,
             'pastStaffNames' => $pastStaffNames,
+            'availableUnits' => $availableUnits,
         ])->layout('layouts.app');
     }
 }

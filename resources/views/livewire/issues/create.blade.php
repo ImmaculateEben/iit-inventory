@@ -4,12 +4,36 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to Issues
         </a>
-        <h1 class="mt-2 text-2xl font-bold text-gray-900">Issue Item</h1>
+        <h1 class="mt-2 text-2xl font-bold text-gray-900">{{ $action_type === 'assign' ? 'Assign Item' : 'Issue Item' }}</h1>
     </div>
 
     <form wire:submit="save" class="space-y-6">
         <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+
+                {{-- Action Type Toggle --}}
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Action Type <span class="text-red-500">*</span></label>
+                    <div class="inline-flex rounded-lg bg-gray-100 p-1">
+                        <button type="button" wire:click="$set('action_type', 'issue')"
+                            class="rounded-md px-4 py-2 text-sm font-medium transition-all {{ $action_type === 'issue' ? 'bg-white shadow text-blue-700' : 'text-gray-500 hover:text-gray-700' }}">
+                            <svg class="inline-block h-4 w-4 mr-1 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
+                            Issue
+                        </button>
+                        <button type="button" wire:click="$set('action_type', 'assign')"
+                            class="rounded-md px-4 py-2 text-sm font-medium transition-all {{ $action_type === 'assign' ? 'bg-white shadow text-green-700' : 'text-gray-500 hover:text-gray-700' }}">
+                            <svg class="inline-block h-4 w-4 mr-1 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+                            Assign
+                        </button>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-400">
+                        @if($action_type === 'assign')
+                            Assign an individual asset unit to a person.
+                        @else
+                            Issue a quantity of items from stock.
+                        @endif
+                    </p>
+                </div>
 
                 {{-- Searchable Item Select --}}
                 <div class="relative" x-data="{ open: @entangle('showItemDropdown') }" @click.outside="open = false">
@@ -40,9 +64,13 @@
                             @foreach($filteredItems as $item)
                                 <li wire:click="selectItem({{ $item->id }})"
                                     class="cursor-pointer px-4 py-2.5 hover:bg-blue-50 transition">
-                                    <span class="font-medium text-gray-900">{{ $item->item_code }}</span>
-                                    <span class="text-gray-500">— {{ $item->item_name }}</span>
-                                    <span class="ml-1 text-xs text-emerald-600">({{ $item->quantity_available }} avail.)</span>
+                                    @if($item->item_code)<span class="font-medium text-gray-900">{{ $item->item_code }}</span> <span class="text-gray-400">—</span> @endif
+                                    <span class="text-gray-700">{{ $item->item_name }}</span>
+                                    @if($action_type === 'assign')
+                                        <span class="ml-1 text-xs text-emerald-600">({{ $item->assetUnits->where('unit_status.value', 'available')->count() ?? 0 }} units)</span>
+                                    @else
+                                        <span class="ml-1 text-xs text-emerald-600">({{ $item->quantity_available }} avail.)</span>
+                                    @endif
                                 </li>
                             @endforeach
                         </ul>
@@ -54,14 +82,14 @@
 
                     @error('inventory_item_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
 
-                    @if($maxQuantity > 0)
+                    @if($action_type === 'issue' && $maxQuantity > 0)
                         <p class="mt-1 text-xs text-gray-500">Available stock: <strong>{{ $maxQuantity }}</strong></p>
                     @endif
                 </div>
 
                 {{-- Staff Name with Autocomplete --}}
                 <div class="relative" x-data="{ open: @entangle('showStaffDropdown') }" @click.outside="open = false">
-                    <label class="block text-sm font-medium text-gray-700">Issue To <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700">{{ $action_type === 'assign' ? 'Assign To' : 'Issue To' }} <span class="text-red-500">*</span></label>
                     <input
                         type="text"
                         wire:model.live.debounce.300ms="staffSearch"
@@ -87,7 +115,27 @@
                     <p class="mt-1 text-xs text-gray-400">Previously used names will appear as suggestions.</p>
                 </div>
 
-                {{-- Quantity --}}
+                {{-- Asset Unit Selection (Assign mode only) --}}
+                @if($action_type === 'assign' && $inventory_item_id)
+                <div>
+                    <label for="asset_unit_id" class="block text-sm font-medium text-gray-700">Asset Unit <span class="text-red-500">*</span></label>
+                    <select wire:model="asset_unit_id" id="asset_unit_id" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                        <option value="">— Select Unit —</option>
+                        @foreach($availableUnits as $unit)
+                            <option value="{{ $unit->id }}">
+                                {{ $unit->asset_tag ?: 'No Tag' }}
+                                @if($unit->serial_number) — S/N: {{ $unit->serial_number }} @endif
+                                ({{ ucfirst($unit->condition_status->value) }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('asset_unit_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                    <p class="mt-1 text-xs text-gray-500">{{ $availableUnits->count() }} unit{{ $availableUnits->count() !== 1 ? 's' : '' }} available for assignment.</p>
+                </div>
+                @endif
+
+                {{-- Quantity (Issue mode only) --}}
+                @if($action_type === 'issue')
                 <div>
                     <label for="quantity" class="block text-sm font-medium text-gray-700">Quantity <span class="text-red-500">*</span></label>
                     <input
@@ -103,6 +151,7 @@
                         <p class="mt-1 text-xs text-amber-600">Only {{ $maxQuantity }} unit{{ $maxQuantity > 1 ? 's' : '' }} available.</p>
                     @endif
                 </div>
+                @endif
 
                 {{-- Notes --}}
                 <div>
@@ -123,7 +172,7 @@
             <a href="{{ route('issues.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">Cancel</a>
             <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition disabled:opacity-50" wire:loading.attr="disabled">
                 <svg wire:loading wire:target="save" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                <span wire:loading.remove wire:target="save">Issue Item</span>
+                <span wire:loading.remove wire:target="save">{{ $action_type === 'assign' ? 'Assign Item' : 'Issue Item' }}</span>
                 <span wire:loading wire:target="save">Processing...</span>
             </button>
         </div>
