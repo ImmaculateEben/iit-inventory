@@ -38,21 +38,14 @@ class Create extends Component
     private function generateCode(string $name): string
     {
         $words = array_values(array_filter(preg_split('/[\s\-_]+/', trim($name))));
-        $code = '';
-        if (count($words) > 1) {
-            $charIndex = 0;
-            while (strlen($code) < 4) {
-                $added = false;
-                foreach ($words as $word) {
-                    if ($charIndex < strlen($word)) {
-                        $code .= strtoupper($word[$charIndex]);
-                        $added = true;
-                        if (strlen($code) >= 4) break;
-                    }
-                }
-                if (!$added) break;
-                $charIndex++;
-            }
+        $count = count($words);
+
+        if ($count >= 4) {
+            $code = collect($words)->map(fn($w) => strtoupper($w[0]))->implode('');
+        } elseif ($count === 3) {
+            $code = strtoupper($words[0][0]) . strtoupper($words[1][0]) . strtoupper(substr($words[2], 0, 2));
+        } elseif ($count === 2) {
+            $code = strtoupper(substr($words[0], 0, 2)) . strtoupper(substr($words[1], 0, 2));
         } else {
             $code = strtoupper(substr(trim($name), 0, 4));
         }
