@@ -9,46 +9,100 @@ use Livewire\Component;
 
 class Create extends Component
 {
-    public string $inventory_item_id = '';
-    public ?string $asset_unit_id = null;
-    public string $fault_description = '';
-    public string $vendor_name = '';
-    public ?string $sent_date = null;
+    // Searchable item selection
+    public string $itemSearch = '';
+    public ?int $inventory_item_id = null;
+    public ?string $selectedItemLabel = null;
+    public bool $showItemDropdown = false;
+
+    // Form fields
+    public string $component_repaired = '';
+    public string $repair_description = '';
+    public ?string $repair_date = null;
 
     protected function rules(): array
     {
         return [
             'inventory_item_id' => 'required|exists:inventory_items,id',
-            'fault_description' => 'required|string|max:1000',
-            'vendor_name' => 'nullable|string|max:200',
-            'sent_date' => 'nullable|date',
+            'component_repaired' => 'required|string|max:200',
+            'repair_description' => 'required|string|max:2000',
+            'repair_date' => 'required|date',
         ];
+    }
+
+    protected $messages = [
+        'inventory_item_id.required' => 'Please select an item.',
+        'component_repaired.required' => 'Please specify what was repaired.',
+        'repair_description.required' => 'Please provide a repair description.',
+        'repair_date.required' => 'Please provide the repair date.',
+    ];
+
+    public function updatedItemSearch(): void
+    {
+        $this->showItemDropdown = strlen($this->itemSearch) >= 1;
+    }
+
+    public function selectItem(int $id): void
+    {
+        $item = InventoryItem::find($id);
+        if ($item) {
+            $this->inventory_item_id = $item->id;
+            $this->selectedItemLabel = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name;
+            $this->itemSearch = '';
+            $this->showItemDropdown = false;
+        }
+    }
+
+    public function clearItem(): void
+    {
+        $this->inventory_item_id = null;
+        $this->selectedItemLabel = null;
+        $this->itemSearch = '';
     }
 
     public function save()
     {
         $this->validate();
 
+        $item = InventoryItem::findOrFail($this->inventory_item_id);
+
         $repair = RepairRecord::create([
+            'repair_number' => RepairRecord::generateNumber(),
             'inventory_item_id' => $this->inventory_item_id,
-            'asset_unit_id' => $this->asset_unit_id,
-            'reported_by' => auth()->id(),
-            'fault_description' => $this->fault_description,
+            'department_id' => $item->department_id,
+            'component_repaired' => $this->component_repaired,
+            'repair_description' => $this->repair_description,
+            'problem_description' => $this->repair_description,
+            'repair_date' => $this->repair_date,
+            'date_reported' => now(),
             'status' => 'reported',
-            'vendor_name' => $this->vendor_name ?: null,
-            'sent_date' => $this->sent_date,
+            'created_by_user_id' => auth()->id(),
         ]);
 
         AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
 
         session()->flash('success', 'Repair record created.');
-        return $this->redirect(route('repairs.show', $repair), navigate: true);
+        return $this->redirect(route('repairs.index'), navigate: true);
     }
 
     public function render()
     {
+        $filteredItems = [];
+        if (strlen($this->itemSearch) >= 1) {
+            $filteredItems = InventoryItem::where('is_active', true)
+                ->where(function ($q) {
+                    $q->where('item_name', 'like', "%{$this->itemSearch}%")
+                      ->orWhere('item_code', 'like', "%{$this->itemSearch}%")
+                      ->orWhere('model_number', 'like', "%{$this->itemSearch}%")
+                      ->orWhere('manufacturer', 'like', "%{$this->itemSearch}%");
+                })
+                ->orderBy('item_name')
+                ->limit(15)
+                ->get();
+        }
+
         return view('livewire.repairs.create', [
-            'items' => InventoryItem::where('is_active', true)->orderBy('item_name')->get(),
+            'filteredItems' => $filteredItems,
         ])->layout('layouts.app');
     }
 }

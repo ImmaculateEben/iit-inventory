@@ -12,7 +12,7 @@ class Show extends Component
 
     public function mount(RepairRecord $repairRecord): void
     {
-        $this->repairRecord = $repairRecord->load(['inventoryItem', 'assetUnit', 'reportedBy']);
+        $this->repairRecord = $repairRecord->load(['inventoryItem', 'assetUnit', 'createdBy']);
     }
 
     public function updateStatus(string $status): void

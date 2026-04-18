@@ -105,9 +105,46 @@
                     <input type="number" id="low_stock_threshold" wire:model="low_stock_threshold" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="System default">
                     @error('low_stock_threshold') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label for="size" class="block text-sm font-medium text-gray-700 mb-1">Size / Specification</label>
-                    <input type="text" id="size" wire:model="size" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                <div class="{{ $sizeMode === 'dimensions' ? 'md:col-span-2' : '' }}">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Size / Specification</label>
+                    <div class="mb-2 inline-flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
+                        <button type="button" wire:click="$set('sizeMode', 'simple')"
+                            class="rounded-md px-3 py-1 transition-all {{ $sizeMode === 'simple' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700' }}">
+                            Single Value
+                        </button>
+                        <button type="button" wire:click="$set('sizeMode', 'dimensions')"
+                            class="rounded-md px-3 py-1 transition-all {{ $sizeMode === 'dimensions' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700' }}">
+                            W &times; L &times; H
+                        </button>
+                    </div>
+                    @if($sizeMode === 'simple')
+                        <input type="text" wire:model="size" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. A4, 500ml, 15-inch">
+                    @else
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs text-gray-500 w-4">W</span>
+                                <input type="number" step="any" min="0" wire:model="dim_width" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                            </div>
+                            <span class="text-gray-400 font-medium">&times;</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs text-gray-500 w-4">L</span>
+                                <input type="number" step="any" min="0" wire:model="dim_length" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                            </div>
+                            <span class="text-gray-400 font-medium">&times;</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-xs text-gray-500 w-4">H</span>
+                                <input type="number" step="any" min="0" wire:model="dim_height" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                            </div>
+                            <select wire:model="dim_unit" class="rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                <option value="cm">cm</option>
+                                <option value="mm">mm</option>
+                                <option value="m">m</option>
+                                <option value="in">in</option>
+                                <option value="ft">ft</option>
+                            </select>
+                        </div>
+                        <p class="mt-1 text-xs text-gray-400">Leave any dimension blank if not applicable.</p>
+                    @endif
                     @error('size') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>

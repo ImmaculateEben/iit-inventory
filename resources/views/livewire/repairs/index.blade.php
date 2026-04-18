@@ -37,9 +37,9 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50/50"><tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fault</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Component</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Repair Date</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Vendor</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Reported By</th>
                     <th class="px-6 py-3"></th>
                 </tr></thead>
@@ -47,13 +47,13 @@
                     @forelse($repairs as $repair)
                     <tr class="hover:bg-gray-50/50">
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ $repair->inventoryItem?->item_name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{{ $repair->fault_description }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $repair->component_repaired ?? '—' }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $repair->repair_date?->format('M d, Y') ?? '—' }}</td>
                         <td class="whitespace-nowrap px-6 py-4">
                             @php $rColors = ['reported'=>'bg-yellow-50 text-yellow-700','sent_for_repair'=>'bg-blue-50 text-blue-700','in_repair'=>'bg-indigo-50 text-indigo-700','repaired'=>'bg-green-50 text-green-700','returned'=>'bg-emerald-50 text-emerald-700','not_repairable'=>'bg-red-50 text-red-700']; @endphp
-                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $rColors[$repair->status] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst(str_replace('_', ' ', $repair->status)) }}</span>
+                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $rColors[$repair->status->value ?? $repair->status] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst(str_replace('_', ' ', $repair->status->value ?? $repair->status)) }}</span>
                         </td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $repair->vendor_name ?? '—' }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $repair->reportedBy?->name }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $repair->createdBy?->name }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
                             <a href="{{ route('repairs.show', $repair) }}" class="text-blue-600 hover:text-blue-800">View</a>
                         </td>

@@ -43,6 +43,11 @@ class Edit extends Component
     // Stock
     public ?int $low_stock_threshold = null;
     public string $size = '';
+    public string $sizeMode = 'simple';
+    public string $dim_width = '';
+    public string $dim_length = '';
+    public string $dim_height = '';
+    public string $dim_unit = 'cm';
     public string $remarks = '';
     public bool $is_active = true;
 
@@ -78,7 +83,23 @@ class Edit extends Component
         $this->venue_storage = $inventoryItem->venue_storage ?? '';
 
         $this->low_stock_threshold = $inventoryItem->low_stock_threshold;
-        $this->size = $inventoryItem->size ?? '';
+        $rawSize = $inventoryItem->size ?? '';
+        if (str_contains($rawSize, '×')) {
+            $this->sizeMode = 'dimensions';
+            foreach (['cm', 'mm', 'm', 'in', 'ft'] as $u) {
+                if (str_ends_with(trim($rawSize), $u)) {
+                    $this->dim_unit = $u;
+                    $rawSize = trim(substr($rawSize, 0, -strlen($u)));
+                    break;
+                }
+            }
+            $parts = array_map('trim', explode('×', $rawSize));
+            $this->dim_width  = $parts[0] ?? '';
+            $this->dim_length = $parts[1] ?? '';
+            $this->dim_height = $parts[2] ?? '';
+        } else {
+            $this->size = $rawSize;
+        }
         $this->remarks = $inventoryItem->remarks ?? '';
         $this->is_active = (bool) $inventoryItem->is_active;
 
@@ -142,6 +163,11 @@ class Edit extends Component
 
     public function save()
     {
+        if ($this->sizeMode === 'dimensions') {
+            $dims = array_filter([$this->dim_width ?: null, $this->dim_length ?: null, $this->dim_height ?: null]);
+            $this->size = $dims ? implode(' × ', $dims) . ($this->dim_unit ? ' ' . $this->dim_unit : '') : '';
+        }
+
         $validated = $this->validate();
         $old = $this->inventoryItem->toArray();
 

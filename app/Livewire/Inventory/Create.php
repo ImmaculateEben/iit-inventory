@@ -45,6 +45,11 @@ class Create extends Component
     public int $quantity_in_stock = 0;
     public ?int $low_stock_threshold = null;
     public string $size = '';
+    public string $sizeMode = 'simple';
+    public string $dim_width = '';
+    public string $dim_length = '';
+    public string $dim_height = '';
+    public string $dim_unit = 'cm';
     public string $remarks = '';
     public bool $is_active = true;
 
@@ -58,7 +63,7 @@ class Create extends Component
     protected function rules(): array
     {
         $rules = [
-            'item_code' => 'required|string|max:50|unique:inventory_items,item_code',
+            'item_code' => 'nullable|string|max:50|unique:inventory_items,item_code',
             'item_name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'item_type' => 'required|in:consumable,asset',
@@ -147,6 +152,11 @@ class Create extends Component
 
     public function save()
     {
+        if ($this->sizeMode === 'dimensions') {
+            $dims = array_filter([$this->dim_width ?: null, $this->dim_length ?: null, $this->dim_height ?: null]);
+            $this->size = $dims ? implode(' × ', $dims) . ($this->dim_unit ? ' ' . $this->dim_unit : '') : '';
+        }
+
         $validated = $this->validate();
 
         $itemData = collect($validated)->only([

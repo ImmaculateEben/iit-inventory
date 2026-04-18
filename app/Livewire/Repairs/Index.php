@@ -17,8 +17,8 @@ class Index extends Component
 
     public function render()
     {
-        $repairs = RepairRecord::with(['inventoryItem', 'reportedBy'])
-            ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
+        $repairs = RepairRecord::with(['inventoryItem', 'createdBy'])
+            ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")->orWhere('item_code', 'like', "%{$this->search}%")))
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->latest()
             ->paginate(15);

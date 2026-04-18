@@ -22,7 +22,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {{-- Item Code --}}
                 <div>
-                    <label for="item_code" class="block text-sm font-medium text-gray-700 mb-1">Item Code <span class="text-red-500">*</span></label>
+                    <label for="item_code" class="block text-sm font-medium text-gray-700 mb-1">Item Code</label>
                     <input type="text" id="item_code" wire:model="item_code" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. IIT-LAP-001">
                     @error('item_code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
@@ -129,9 +129,46 @@
                         <input type="number" id="low_stock_threshold" wire:model="low_stock_threshold" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         @error('low_stock_threshold') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-                    <div>
-                        <label for="size" class="block text-sm font-medium text-gray-700 mb-1">Size / Specification</label>
-                        <input type="text" id="size" wire:model="size" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. A4, 500ml, 15-inch">
+                    <div class="{{ $sizeMode === 'dimensions' ? 'md:col-span-2' : '' }}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Size / Specification</label>
+                        <div class="mb-2 inline-flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
+                            <button type="button" wire:click="$set('sizeMode', 'simple')"
+                                class="rounded-md px-3 py-1 transition-all {{ $sizeMode === 'simple' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700' }}">
+                                Single Value
+                            </button>
+                            <button type="button" wire:click="$set('sizeMode', 'dimensions')"
+                                class="rounded-md px-3 py-1 transition-all {{ $sizeMode === 'dimensions' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700' }}">
+                                W &times; L &times; H
+                            </button>
+                        </div>
+                        @if($sizeMode === 'simple')
+                            <input type="text" wire:model="size" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. A4, 500ml, 15-inch">
+                        @else
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500 w-4">W</span>
+                                    <input type="number" step="any" min="0" wire:model="dim_width" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                                </div>
+                                <span class="text-gray-400 font-medium">&times;</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500 w-4">L</span>
+                                    <input type="number" step="any" min="0" wire:model="dim_length" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                                </div>
+                                <span class="text-gray-400 font-medium">&times;</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500 w-4">H</span>
+                                    <input type="number" step="any" min="0" wire:model="dim_height" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                                </div>
+                                <select wire:model="dim_unit" class="rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    <option value="cm">cm</option>
+                                    <option value="mm">mm</option>
+                                    <option value="m">m</option>
+                                    <option value="in">in</option>
+                                    <option value="ft">ft</option>
+                                </select>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-400">Leave any dimension blank if not applicable.</p>
+                        @endif
                         @error('size') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -204,53 +241,50 @@
                         <input type="number" id="low_stock_threshold" wire:model="low_stock_threshold" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
                         @error('low_stock_threshold') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-                    <div>
-                        <label for="size" class="block text-sm font-medium text-gray-700 mb-1">Size / Specification</label>
-                        <input type="text" id="size" wire:model="size" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. 15-inch, 256GB SSD">
+                    <div class="{{ $sizeMode === 'dimensions' ? 'md:col-span-2' : '' }}">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Size / Specification</label>
+                        <div class="mb-2 inline-flex rounded-lg bg-gray-100 p-0.5 text-xs font-medium">
+                            <button type="button" wire:click="$set('sizeMode', 'simple')"
+                                class="rounded-md px-3 py-1 transition-all {{ $sizeMode === 'simple' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700' }}">
+                                Single Value
+                            </button>
+                            <button type="button" wire:click="$set('sizeMode', 'dimensions')"
+                                class="rounded-md px-3 py-1 transition-all {{ $sizeMode === 'dimensions' ? 'bg-white shadow text-gray-900' : 'text-gray-500 hover:text-gray-700' }}">
+                                W &times; L &times; H
+                            </button>
+                        </div>
+                        @if($sizeMode === 'simple')
+                            <input type="text" wire:model="size" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. 15-inch, 256GB SSD">
+                        @else
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500 w-4">W</span>
+                                    <input type="number" step="any" min="0" wire:model="dim_width" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                                </div>
+                                <span class="text-gray-400 font-medium">&times;</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500 w-4">L</span>
+                                    <input type="number" step="any" min="0" wire:model="dim_length" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                                </div>
+                                <span class="text-gray-400 font-medium">&times;</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs text-gray-500 w-4">H</span>
+                                    <input type="number" step="any" min="0" wire:model="dim_height" class="w-20 rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0">
+                                </div>
+                                <select wire:model="dim_unit" class="rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                                    <option value="cm">cm</option>
+                                    <option value="mm">mm</option>
+                                    <option value="m">m</option>
+                                    <option value="in">in</option>
+                                    <option value="ft">ft</option>
+                                </select>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-400">Leave any dimension blank if not applicable.</p>
+                        @endif
                         @error('size') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
             @endif
-        </div>
-
-        {{-- ============================================================== --}}
-        {{-- SECTION 3: Procurement --}}
-        {{-- ============================================================== --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Procurement</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                    <label for="supplier_donor" class="block text-sm font-medium text-gray-700 mb-1">Supplier / Donor</label>
-                    <input type="text" id="supplier_donor" wire:model="supplier_donor" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. Gov't Grant, Tech Supplies Ltd">
-                    @error('supplier_donor') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="purchase_date" class="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
-                    <input type="date" id="purchase_date" wire:model="purchase_date" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('purchase_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="purchase_cost" class="block text-sm font-medium text-gray-700 mb-1">Purchase Cost (KES)</label>
-                    <input type="number" id="purchase_cost" wire:model="purchase_cost" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="0.00">
-                    @error('purchase_cost') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="warranty_info" class="block text-sm font-medium text-gray-700 mb-1">Warranty Info</label>
-                    <input type="text" id="warranty_info" wire:model="warranty_info" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. 3 Year Manufacturer Warranty">
-                    @error('warranty_info') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="warranty_expiry" class="block text-sm font-medium text-gray-700 mb-1">Warranty Expiry</label>
-                    <input type="date" id="warranty_expiry" wire:model="warranty_expiry" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('warranty_expiry') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="guarantee_info" class="block text-sm font-medium text-gray-700 mb-1">Guarantee Info</label>
-                    <input type="text" id="guarantee_info" wire:model="guarantee_info" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. 1 Year Service Guarantee">
-                    @error('guarantee_info') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-            </div>
         </div>
 
         {{-- ============================================================== --}}
@@ -259,7 +293,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Location</h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
                     <label for="floor" class="block text-sm font-medium text-gray-700 mb-1">Floor</label>
                     <input type="text" id="floor" wire:model="floor" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. Ground, 1st, 2nd">
@@ -274,11 +308,6 @@
                     <label for="venue_storage" class="block text-sm font-medium text-gray-700 mb-1">Storage Area</label>
                     <input type="text" id="venue_storage" wire:model="venue_storage" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. Cabinet A, Shelf 3">
                     @error('venue_storage') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700 mb-1">General Location</label>
-                    <input type="text" id="location" wire:model="location" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. Main Campus, Building B">
-                    @error('location') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>

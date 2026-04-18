@@ -68,7 +68,6 @@
                             Available
                             @if($sortBy === 'quantity_available') <span>{{ $sortDir === 'asc' ? '↑' : '↓' }}</span> @endif
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Status</th>
                         <th class="px-6 py-3"></th>
                     </tr>
                 </thead>
@@ -89,17 +88,6 @@
                             <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold {{ $item->low_stock_threshold && $item->quantity_available <= $item->low_stock_threshold ? 'text-amber-600' : 'text-gray-900' }}">
                                 {{ number_format($item->quantity_available) }}
                             </td>
-                            <td class="whitespace-nowrap px-6 py-4">
-                                @if($item->is_active)
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-green-500"></span> Active
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
-                                        <span class="h-1.5 w-1.5 rounded-full bg-gray-400"></span> Inactive
-                                    </span>
-                                @endif
-                            </td>
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
                                 <a href="{{ route('inventory.show', $item) }}" class="text-blue-600 hover:text-blue-800">View</a>
                                 @can('manage_inventory')
@@ -109,7 +97,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="px-6 py-12 text-center">
+                            <td colspan="7" class="px-6 py-12 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg>
                                 <p class="mt-3 text-sm font-medium text-gray-900">No items found</p>
                                 <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filters.</p>
