@@ -48,18 +48,17 @@
                 ];
             @endphp
 
-            <div class="p-6 space-y-7">
+            <div class="p-6 space-y-10">
                 @foreach($groups as $groupName => $group)
                 <div class="border-l-4 {{ $group['border'] }} pl-5">
-                    <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">{{ $groupName }}</h4>
-                    <div class="flex flex-wrap gap-2.5">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-4">{{ $groupName }}</h4>
+                    <div class="flex flex-wrap gap-3">
                         @foreach($group['codes'] as $code)
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
                                 :class="has({{ $perm->id }}) ? '{{ $group['active'] }}' : '{{ $group['light'] }}'"
-                                class="inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-1">
-                                <svg x-show="has({{ $perm->id }})" x-cloak class="-ml-0.5 mr-1.5 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                class="rounded-full border px-4 py-2 text-xs font-medium transition-all duration-100 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
                             @endif
