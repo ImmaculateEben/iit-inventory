@@ -16,9 +16,9 @@ class Index extends Component
 
     public function render()
     {
-        $returns = ReturnRecord::with(['inventoryItem', 'returnedBy', 'receivedBy'])
+        $returns = ReturnRecord::with(['inventoryItem', 'receivedBy'])
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
-            ->latest('return_date')
+            ->latest('returned_at')
             ->paginate(15);
 
         return view('livewire.returns.index', compact('returns'))->layout('layouts.app');

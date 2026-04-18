@@ -15,27 +15,37 @@
                     <select wire:model.live="issue_record_id" id="issue_record_id" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="">Select issue record</option>
                         @foreach($issueRecords as $issue)
-                            <option value="{{ $issue->id }}">{{ $issue->issue_date->format('M d') }} — {{ $issue->inventoryItem?->item_name }} (Qty: {{ $issue->quantity_issued }})</option>
+                            <option value="{{ $issue->id }}">{{ $issue->issued_at->format('M d') }} — {{ $issue->inventoryItem?->item_name }} — {{ $issue->staff_name_snapshot }} (Outstanding: {{ $issue->outstandingQuantity() }})</option>
                         @endforeach
                     </select>
                     @error('issue_record_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
+
+                @if($issue_record_id)
+                <div class="sm:col-span-2 rounded-lg bg-gray-50 p-4 text-sm text-gray-600 space-y-1">
+                    <p><span class="font-medium text-gray-700">Item:</span> {{ $itemName }}</p>
+                    <p><span class="font-medium text-gray-700">Staff:</span> {{ $staffName }}</p>
+                    <p><span class="font-medium text-gray-700">Department:</span> {{ $departmentName }}</p>
+                    <p><span class="font-medium text-gray-700">Max returnable:</span> {{ $maxReturnQuantity }}</p>
+                </div>
+                @endif
+
                 <div>
-                    <label for="quantity_returned" class="block text-sm font-medium text-gray-700">Quantity Returned <span class="text-red-500">*</span></label>
-                    <input wire:model="quantity_returned" type="number" id="quantity_returned" min="1" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                    @error('quantity_returned') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                    <label for="returned_quantity" class="block text-sm font-medium text-gray-700">Quantity Returned <span class="text-red-500">*</span></label>
+                    <input wire:model="returned_quantity" type="number" id="returned_quantity" min="1" max="{{ $maxReturnQuantity ?: 9999 }}" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    @error('returned_quantity') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label for="condition_on_return" class="block text-sm font-medium text-gray-700">Condition <span class="text-red-500">*</span></label>
-                    <select wire:model="condition_on_return" id="condition_on_return" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <label for="return_condition" class="block text-sm font-medium text-gray-700">Condition <span class="text-red-500">*</span></label>
+                    <select wire:model="return_condition" id="return_condition" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                         <option value="good">Good</option>
                         <option value="damaged">Damaged</option>
                         <option value="faulty">Faulty</option>
                     </select>
                 </div>
                 <div class="sm:col-span-2">
-                    <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                    <textarea wire:model="notes" id="notes" rows="2" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+                    <label for="note" class="block text-sm font-medium text-gray-700">Notes</label>
+                    <textarea wire:model="note" id="note" rows="2" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
                 </div>
             </div>
         </div>

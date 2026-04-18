@@ -42,6 +42,11 @@ class ReturnRecord extends Model
         return $this->belongsTo(Department::class);
     }
 
+    public function staffDirectory(): BelongsTo
+    {
+        return $this->belongsTo(StaffDirectory::class);
+    }
+
     public function receivedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'received_by_user_id');

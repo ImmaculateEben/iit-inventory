@@ -3,6 +3,8 @@
 namespace App\Livewire\Returns;
 
 use App\Enums\ConditionStatus;
+use App\Enums\UnitStatus;
+use App\Models\AssetUnit;
 use App\Models\InventoryItem;
 use App\Models\IssueRecord;
 use App\Models\ReturnRecord;
@@ -12,30 +14,44 @@ use Livewire\Component;
 class Create extends Component
 {
     public string $issue_record_id = '';
-    public string $inventory_item_id = '';
-    public int $quantity_returned = 1;
-    public string $condition_on_return = 'good';
-    public string $notes = '';
+    public int $returned_quantity = 1;
+    public string $return_condition = 'good';
+    public string $note = '';
+
+    // Display info
+    public int $maxReturnQuantity = 0;
+    public string $staffName = '';
+    public string $departmentName = '';
+    public string $itemName = '';
 
     protected function rules(): array
     {
         return [
             'issue_record_id' => 'required|exists:issue_records,id',
-            'inventory_item_id' => 'required|exists:inventory_items,id',
-            'quantity_returned' => 'required|integer|min:1',
-            'condition_on_return' => 'required|in:good,damaged,faulty',
-            'notes' => 'nullable|string|max:500',
+            'returned_quantity' => 'required|integer|min:1',
+            'return_condition' => 'required|in:good,damaged,faulty',
+            'note' => 'nullable|string|max:500',
         ];
     }
 
     public function updatedIssueRecordId($value): void
     {
         if ($value) {
-            $issue = IssueRecord::find($value);
+            $issue = IssueRecord::with(['inventoryItem', 'department'])->find($value);
             if ($issue) {
-                $this->inventory_item_id = (string) $issue->inventory_item_id;
-                $this->quantity_returned = $issue->quantity_issued;
+                $outstanding = $issue->outstandingQuantity();
+                $this->maxReturnQuantity = $outstanding;
+                $this->returned_quantity = $outstanding;
+                $this->staffName = $issue->staff_name_snapshot ?? '';
+                $this->departmentName = $issue->department?->name ?? '';
+                $this->itemName = $issue->inventoryItem?->item_name ?? '';
             }
+        } else {
+            $this->maxReturnQuantity = 0;
+            $this->returned_quantity = 1;
+            $this->staffName = '';
+            $this->departmentName = '';
+            $this->itemName = '';
         }
     }
 
@@ -43,23 +59,44 @@ class Create extends Component
     {
         $this->validate();
 
+        $issue = IssueRecord::findOrFail($this->issue_record_id);
+        $outstanding = $issue->outstandingQuantity();
+
+        if ($this->returned_quantity > $outstanding) {
+            $this->addError('returned_quantity', "Cannot return more than outstanding quantity ($outstanding).");
+            return;
+        }
+
         $return = ReturnRecord::create([
-            'issue_record_id' => $this->issue_record_id,
-            'inventory_item_id' => $this->inventory_item_id,
-            'returned_by' => IssueRecord::find($this->issue_record_id)->issued_to,
-            'received_by' => auth()->id(),
-            'quantity_returned' => $this->quantity_returned,
-            'condition_on_return' => $this->condition_on_return,
-            'return_date' => now(),
-            'notes' => $this->notes ?: null,
+            'issue_record_id' => $issue->id,
+            'inventory_item_id' => $issue->inventory_item_id,
+            'asset_unit_id' => $issue->asset_unit_id,
+            'department_id' => $issue->department_id,
+            'staff_directory_id' => $issue->staff_directory_id,
+            'staff_name_snapshot' => $issue->staff_name_snapshot,
+            'returned_quantity' => $this->returned_quantity,
+            'return_condition' => $this->return_condition,
+            'received_by_user_id' => auth()->id(),
+            'returned_at' => now(),
+            'note' => $this->note ?: null,
         ]);
 
-        $item = InventoryItem::findOrFail($this->inventory_item_id);
-        $item->increment('quantity_available', $this->quantity_returned);
-        $item->decrement('quantity_issued', $this->quantity_returned);
+        // Update issue record returned_quantity
+        $issue->increment('returned_quantity', $this->returned_quantity);
+
+        // Update inventory item quantities
+        $item = InventoryItem::findOrFail($issue->inventory_item_id);
+        $item->increment('quantity_available', $this->returned_quantity);
+        $item->decrement('quantity_issued', $this->returned_quantity);
+
+        // If this was an assigned unit and fully returned, set it back to available
+        if ($issue->asset_unit_id && $issue->fresh()->outstandingQuantity() <= 0) {
+            AssetUnit::where('id', $issue->asset_unit_id)
+                ->update(['unit_status' => UnitStatus::Available, 'assigned_staff_name_snapshot' => null]);
+        }
 
         AuditLogger::log('item_returned', ReturnRecord::class, $return->id, null, [
-            'item' => $item->item_name, 'qty' => $this->quantity_returned,
+            'item' => $item->item_name, 'qty' => $this->returned_quantity,
         ]);
 
         session()->flash('success', 'Return recorded successfully.');
@@ -68,11 +105,13 @@ class Create extends Component
 
     public function render()
     {
+        $issueRecords = IssueRecord::with(['inventoryItem', 'department'])
+            ->whereRaw('quantity > returned_quantity')
+            ->latest('issued_at')
+            ->get();
+
         return view('livewire.returns.create', [
-            'issueRecords' => IssueRecord::with('inventoryItem')
-                ->where('quantity_issued', '>', 0)
-                ->latest('issue_date')
-                ->get(),
+            'issueRecords' => $issueRecords,
         ])->layout('layouts.app');
     }
 }

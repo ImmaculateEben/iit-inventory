@@ -33,14 +33,14 @@
                 <tbody class="divide-y divide-gray-100">
                     @forelse($returns as $return)
                     <tr class="hover:bg-gray-50/50">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $return->return_date->format('M d, Y') }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $return->returned_at->format('M d, Y') }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ $return->inventoryItem?->item_name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900">{{ $return->quantity_returned }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold text-gray-900">{{ $return->returned_quantity }}</td>
                         <td class="whitespace-nowrap px-6 py-4">
                             @php $cColors = ['good'=>'bg-green-50 text-green-700','damaged'=>'bg-red-50 text-red-700','faulty'=>'bg-amber-50 text-amber-700']; @endphp
-                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $cColors[$return->condition_on_return] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst($return->condition_on_return) }}</span>
+                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $cColors[$return->return_condition->value] ?? 'bg-gray-100 text-gray-600' }}">{{ $return->return_condition->label() }}</span>
                         </td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $return->returnedBy?->name }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $return->staff_name_snapshot }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $return->receivedBy?->name }}</td>
                     </tr>
                     @empty
