@@ -25,7 +25,7 @@ class Show extends Component
 
         $this->inventoryItem = $inventoryItem->load([
             'category', 'department', 'assetUnits', 'customFieldValues.customField',
-            'stockAdjustments' => fn($q) => $q->latest()->limit(10),
+            'stockAdjustments' => fn($q) => $q->with('performedBy')->latest()->limit(10),
             'issueRecords' => fn($q) => $q->latest('issued_at')->limit(10),
             'repairRecords' => fn($q) => $q->latest('repair_date'),
         ]);

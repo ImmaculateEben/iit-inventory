@@ -195,6 +195,38 @@
                 </div>
             </div>
             @endif
+
+            {{-- Stock Adjustments --}}
+            <div class="rounded-xl bg-white shadow-sm border border-gray-100">
+                <div class="border-b border-gray-100 px-6 py-4"><h3 class="text-base font-semibold text-gray-900">Stock Adjustments ({{ $inventoryItem->stockAdjustments->count() }})</h3></div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50/50"><tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Delta</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">By</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Note</th>
+                        </tr></thead>
+                        <tbody class="divide-y divide-gray-100">
+                            @forelse($inventoryItem->stockAdjustments as $adj)
+                            <tr class="hover:bg-gray-50/50">
+                                <td class="whitespace-nowrap px-6 py-3 text-sm text-gray-600">{{ $adj->performed_at->format('M d, Y') }}</td>
+                                <td class="whitespace-nowrap px-6 py-3">
+                                    @php $inc = $adj->delta_total > 0; @endphp
+                                    <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $inc ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">{{ $adj->action_type->label() }}</span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-3 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
+                                <td class="whitespace-nowrap px-6 py-3 text-sm text-gray-600">{{ $adj->performedBy?->name ?? '—' }}</td>
+                                <td class="px-6 py-3 text-sm text-gray-500 max-w-xs truncate">{{ $adj->note ?? '—' }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">No stock adjustments yet.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         {{-- ============================================================== --}}

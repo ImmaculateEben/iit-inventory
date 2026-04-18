@@ -16,26 +16,26 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50/50"><tr>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Adj. No.</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Qty</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Before → After</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Delta</th>
                     <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">By</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Reason</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Note</th>
                 </tr></thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($adjustments as $adj)
                     <tr class="hover:bg-gray-50/50">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->created_at->format('M d, Y') }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->performed_at->format('M d, Y') }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm font-mono text-gray-500">{{ $adj->adjustment_number }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ $adj->inventoryItem?->item_name }}</td>
                         <td class="whitespace-nowrap px-6 py-4">
-                            @php $inc = in_array($adj->adjustment_type, ['stock_in','correction_increase','repair_in']); @endphp
-                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $inc ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">{{ ucfirst(str_replace('_', ' ', $adj->adjustment_type)) }}</span>
+                            @php $inc = $adj->delta_total > 0; @endphp
+                            <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $inc ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">{{ $adj->action_type->label() }}</span>
                         </td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '-' }}{{ $adj->quantity }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->quantity_before }} → {{ $adj->quantity_after }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->adjustedBy?->name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ $adj->reason }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
+                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->performedBy?->name }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ $adj->note }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">No adjustments found.</td></tr>

@@ -14,7 +14,7 @@ class Index extends Component
 
     public function render()
     {
-        $adjustments = StockAdjustment::with(['inventoryItem', 'adjustedBy'])
+        $adjustments = StockAdjustment::with(['inventoryItem', 'performedBy'])
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
             ->latest()->paginate(15);
         return view('livewire.adjustments.index', compact('adjustments'))->layout('layouts.app');

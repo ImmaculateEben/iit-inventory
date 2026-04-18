@@ -45,14 +45,18 @@ class Create extends Component
             return;
         }
 
+        $deltaTotal = $increase ? $this->quantity : -$this->quantity;
+        $deltaAvailable = $deltaTotal;
+
         $adjustment = StockAdjustment::create([
+            'adjustment_number' => StockAdjustment::generateNumber(),
             'inventory_item_id' => $this->inventory_item_id,
-            'adjusted_by' => auth()->id(),
-            'adjustment_type' => $this->adjustment_type,
-            'quantity' => $this->quantity,
-            'quantity_before' => $before,
-            'quantity_after' => $increase ? $before + $this->quantity : $before - $this->quantity,
-            'reason' => $this->reason,
+            'action_type' => $this->adjustment_type,
+            'delta_total' => $deltaTotal,
+            'delta_available' => $deltaAvailable,
+            'performed_by_user_id' => auth()->id(),
+            'performed_at' => now(),
+            'note' => $this->reason,
         ]);
 
         if ($increase) {
@@ -63,7 +67,7 @@ class Create extends Component
             $item->decrement('quantity_available', $this->quantity);
         }
 
-        AuditLogger::log('stock_adjusted', StockAdjustment::class, $adjustment->id, ['qty' => $before], ['qty' => $adjustment->quantity_after]);
+        AuditLogger::log('stock_adjusted', StockAdjustment::class, $adjustment->id, ['qty' => $before], ['qty' => $before + $deltaTotal]);
 
         $this->clearFormState();
         session()->flash('success', 'Stock adjustment recorded.');
