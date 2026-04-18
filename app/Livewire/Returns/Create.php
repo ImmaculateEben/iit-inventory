@@ -9,10 +9,18 @@ use App\Models\InventoryItem;
 use App\Models\IssueRecord;
 use App\Models\ReturnRecord;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['issue_record_id', 'returned_quantity', 'return_condition', 'note'];
+    }
+
     public string $issue_record_id = '';
     public int $returned_quantity = 1;
     public string $return_condition = 'good';
@@ -99,6 +107,7 @@ class Create extends Component
             'item' => $item->item_name, 'qty' => $this->returned_quantity,
         ]);
 
+        $this->clearFormState();
         session()->flash('success', 'Return recorded successfully.');
         return $this->redirect(route('returns.index'), navigate: true);
     }

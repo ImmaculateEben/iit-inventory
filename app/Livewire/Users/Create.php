@@ -7,11 +7,19 @@ use App\Models\Department;
 use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['name', 'email', 'department_id', 'selectedRoles', 'is_active', 'can_view_all_inventory', 'accessibleDepartments', 'accessibleCategories'];
+    }
+
     public string $name = '';
     public string $email = '';
     public string $password = '';
@@ -55,6 +63,7 @@ class Create extends Component
         }
 
         AuditLogger::log('user_created', User::class, $user->id);
+        $this->clearFormState();
         session()->flash('success', 'User created.');
         return $this->redirect(route('users.index'), navigate: true);
     }

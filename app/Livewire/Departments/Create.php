@@ -4,10 +4,18 @@ namespace App\Livewire\Departments;
 
 use App\Models\Department;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['name', 'code', 'description', 'is_active', 'codeManuallyEdited'];
+    }
+
     public string $name = '';
     public string $code = '';
     public string $description = '';
@@ -66,6 +74,7 @@ class Create extends Component
         $validated['is_active'] = $this->is_active;
         $dept = Department::create($validated);
         AuditLogger::log('department_created', Department::class, $dept->id);
+        $this->clearFormState();
         session()->flash('success', 'Department created.');
         return $this->redirect(route('departments.index'), navigate: true);
     }

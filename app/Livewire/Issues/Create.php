@@ -7,10 +7,18 @@ use App\Models\AssetUnit;
 use App\Models\InventoryItem;
 use App\Models\IssueRecord;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['action_type', 'inventory_item_id', 'department_id', 'staff_name', 'quantity', 'asset_unit_id', 'note'];
+    }
+
     // Action type toggle
     public string $action_type = 'issue';
 
@@ -188,6 +196,7 @@ class Create extends Component
             session()->flash('success', 'Item issued successfully.');
         }
 
+        $this->clearFormState();
         return $this->redirect(route('issues.index'), navigate: true);
     }
 

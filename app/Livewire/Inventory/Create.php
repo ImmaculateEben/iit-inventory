@@ -11,10 +11,27 @@ use App\Models\CustomFieldValue;
 use App\Models\Department;
 use App\Models\InventoryItem;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return [
+            'item_code', 'item_name', 'description', 'item_type', 'tracking_method',
+            'category_id', 'department_id', 'unit_of_measure',
+            'manufacturer', 'model_number', 'supplier_donor',
+            'purchase_date', 'purchase_cost', 'warranty_info', 'warranty_expiry', 'guarantee_info',
+            'location', 'floor', 'venue', 'venue_storage',
+            'quantity_in_stock', 'low_stock_threshold', 'size', 'sizeMode',
+            'dim_width', 'dim_length', 'dim_height', 'dim_unit',
+            'remarks', 'is_active',
+        ];
+    }
+
     // Basic Information
     public string $item_code = '';
     public string $item_name = '';
@@ -245,6 +262,7 @@ class Create extends Component
 
         AuditLogger::log('inventory_item_created', InventoryItem::class, $item->id, null, $itemData);
 
+        $this->clearFormState();
         session()->flash('success', 'Inventory item created successfully.');
         return $this->redirect(route('inventory.show', $item), navigate: true);
     }

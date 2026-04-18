@@ -5,10 +5,18 @@ namespace App\Livewire\Repairs;
 use App\Models\InventoryItem;
 use App\Models\RepairRecord;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['inventory_item_id', 'action_type', 'component_repaired', 'repair_description', 'repair_date', 'status'];
+    }
+
     // Searchable item selection
     public string $itemSearch = '';
     public ?int $inventory_item_id = null;
@@ -86,6 +94,7 @@ class Create extends Component
 
         AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
 
+        $this->clearFormState();
         session()->flash('success', ucfirst($this->action_type) . ' record created.');
         return $this->redirect(route('repairs.index'), navigate: true);
     }

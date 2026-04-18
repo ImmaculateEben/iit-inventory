@@ -4,10 +4,18 @@ namespace App\Livewire\Categories;
 
 use App\Models\Category;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['name', 'code', 'description', 'is_active', 'codeManuallyEdited'];
+    }
+
     public string $name = '';
     public string $code = '';
     public string $description = '';
@@ -66,6 +74,7 @@ class Create extends Component
         $validated['is_active'] = $this->is_active;
         $cat = Category::create($validated);
         AuditLogger::log('category_created', Category::class, $cat->id);
+        $this->clearFormState();
         session()->flash('success', 'Category created.');
         return $this->redirect(route('categories.index'), navigate: true);
     }

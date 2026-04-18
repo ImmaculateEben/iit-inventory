@@ -5,10 +5,18 @@ namespace App\Livewire\Adjustments;
 use App\Models\InventoryItem;
 use App\Models\StockAdjustment;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['inventory_item_id', 'adjustment_type', 'quantity', 'reason'];
+    }
+
     public string $inventory_item_id = '';
     public string $adjustment_type = 'stock_in';
     public int $quantity = 0;
@@ -57,6 +65,7 @@ class Create extends Component
 
         AuditLogger::log('stock_adjusted', StockAdjustment::class, $adjustment->id, ['qty' => $before], ['qty' => $adjustment->quantity_after]);
 
+        $this->clearFormState();
         session()->flash('success', 'Stock adjustment recorded.');
         return $this->redirect(route('adjustments.index'), navigate: true);
     }

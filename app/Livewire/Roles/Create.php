@@ -5,10 +5,18 @@ namespace App\Livewire\Roles;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Support\Audit\AuditLogger;
+use App\Support\RemembersFormState;
 use Livewire\Component;
 
 class Create extends Component
 {
+    use RemembersFormState;
+
+    protected function formStateFields(): array
+    {
+        return ['name', 'description', 'selectedPermissions'];
+    }
+
     public string $name = '';
     public string $description = '';
     public array $selectedPermissions = [];
@@ -38,6 +46,7 @@ class Create extends Component
         $role->permissions()->sync($this->selectedPermissions);
 
         AuditLogger::log('role_created', Role::class, $role->id);
+        $this->clearFormState();
         session()->flash('success', 'Role created successfully.');
         return $this->redirect(route('roles.index'), navigate: true);
     }
