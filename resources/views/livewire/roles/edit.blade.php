@@ -48,7 +48,7 @@
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) && '!bg-purple-600 !text-white !border-purple-600 shadow-sm'"
+                                :style="has({{ $perm->id }}) && 'background-color:#9333ea;color:#fff;border-color:#9333ea;box-shadow:0 1px 2px rgba(0,0,0,.05)'"
                                 class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
@@ -65,7 +65,7 @@
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) && '!bg-blue-600 !text-white !border-blue-600 shadow-sm'"
+                                :style="has({{ $perm->id }}) && 'background-color:#2563eb;color:#fff;border-color:#2563eb;box-shadow:0 1px 2px rgba(0,0,0,.05)'"
                                 class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
@@ -82,7 +82,7 @@
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) && '!bg-green-600 !text-white !border-green-600 shadow-sm'"
+                                :style="has({{ $perm->id }}) && 'background-color:#16a34a;color:#fff;border-color:#16a34a;box-shadow:0 1px 2px rgba(0,0,0,.05)'"
                                 class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-green-50 text-green-700 border-green-200 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
@@ -99,7 +99,7 @@
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
                             <button type="button" @click="toggle({{ $perm->id }})"
-                                :class="has({{ $perm->id }}) && '!bg-amber-600 !text-white !border-amber-600 shadow-sm'"
+                                :style="has({{ $perm->id }}) && 'background-color:#d97706;color:#fff;border-color:#d97706;box-shadow:0 1px 2px rgba(0,0,0,.05)'"
                                 class="rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-100 cursor-pointer select-none bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:ring-offset-1">
                                 {{ $perm->name }}
                             </button>
