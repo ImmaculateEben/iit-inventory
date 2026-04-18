@@ -1,7 +1,13 @@
 <div>
-    <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900">Roles & Permissions</h2>
-        <p class="mt-1 text-sm text-gray-500">Manage roles and their associated permissions</p>
+    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900">Roles & Permissions</h2>
+            <p class="mt-1 text-sm text-gray-500">Manage roles and their associated permissions</p>
+        </div>
+        <a href="{{ route('roles.create') }}" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            Create Role
+        </a>
     </div>
 
     @php

@@ -27,6 +27,7 @@ use App\Livewire\Users\Index as UsersIndex;
 use App\Livewire\Users\Create as UsersCreate;
 use App\Livewire\Users\Edit as UsersEdit;
 use App\Livewire\Roles\Index as RolesIndex;
+use App\Livewire\Roles\Create as RolesCreate;
 use App\Livewire\Roles\Edit as RolesEdit;
 use App\Livewire\AuditLog\Index as AuditLogIndex;
 use Illuminate\Support\Facades\Route;
@@ -83,6 +84,7 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     // Roles
     Route::get('/roles', RolesIndex::class)->name('roles.index')->middleware('permission:manage_roles_permissions');
+    Route::get('/roles/create', RolesCreate::class)->name('roles.create')->middleware('permission:manage_roles_permissions');
     Route::get('/roles/{role}/edit', RolesEdit::class)->name('roles.edit')->middleware('permission:manage_roles_permissions');
 
     // Audit Log
