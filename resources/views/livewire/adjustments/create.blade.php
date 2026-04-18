@@ -1,0 +1,15 @@
+<div>
+    <div class="mb-6"><a href="{{ route('adjustments.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"><svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg> Back</a><h2 class="mt-2 text-2xl font-bold text-gray-900">New Stock Adjustment</h2></div>
+    <form wire:submit="save"><div class="rounded-xl bg-white p-6 shadow-sm border border-gray-100"><div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <div class="sm:col-span-2"><label class="block text-sm font-medium text-gray-700">Item <span class="text-red-500">*</span></label><select wire:model="inventory_item_id" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"><option value="">Select item</option>@foreach($items as $item)<option value="{{ $item->id }}">{{ $item->item_code }} — {{ $item->item_name }} (Stock: {{ $item->quantity_in_stock }})</option>@endforeach</select>@error('inventory_item_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
+        <div><label class="block text-sm font-medium text-gray-700">Adjustment Type <span class="text-red-500">*</span></label><select wire:model="adjustment_type" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+            <option value="stock_in">Stock In</option><option value="stock_out">Stock Out</option>
+            <option value="correction_increase">Correction (Increase)</option><option value="correction_decrease">Correction (Decrease)</option>
+            <option value="damage">Damage</option><option value="loss">Loss</option><option value="disposal">Disposal</option>
+            <option value="repair_out">Repair Out</option><option value="repair_in">Repair In</option>
+        </select></div>
+        <div><label class="block text-sm font-medium text-gray-700">Quantity <span class="text-red-500">*</span></label><input wire:model="quantity" type="number" min="1" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">@error('quantity')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
+        <div class="sm:col-span-2"><label class="block text-sm font-medium text-gray-700">Reason <span class="text-red-500">*</span></label><textarea wire:model="reason" rows="2" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>@error('reason')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
+    </div></div>
+    <div class="mt-6 flex justify-end gap-3"><a href="{{ route('adjustments.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a><button type="submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Submit Adjustment</button></div></form>
+</div>
