@@ -44,9 +44,22 @@ class Edit extends Component
 
     private function generateCode(string $name): string
     {
-        $words = array_filter(preg_split('/[\s\-_]+/', trim($name)));
+        $words = array_values(array_filter(preg_split('/[\s\-_]+/', trim($name))));
+        $code = '';
         if (count($words) > 1) {
-            $code = collect($words)->map(fn($w) => strtoupper(substr($w, 0, 1)))->implode('');
+            $charIndex = 0;
+            while (strlen($code) < 4) {
+                $added = false;
+                foreach ($words as $word) {
+                    if ($charIndex < strlen($word)) {
+                        $code .= strtoupper($word[$charIndex]);
+                        $added = true;
+                        if (strlen($code) >= 4) break;
+                    }
+                }
+                if (!$added) break;
+                $charIndex++;
+            }
         } else {
             $code = strtoupper(substr(trim($name), 0, 4));
         }
