@@ -71,13 +71,10 @@
                         @foreach($group['codes'] as $code)
                             @php $perm = $permissions->firstWhere('code', $code); @endphp
                             @if($perm)
-                            <label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition group">
-                                <span class="text-sm text-gray-700 group-hover:text-gray-900">{{ $perm->name }}</span>
-                                <div class="relative">
-                                    <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="peer sr-only">
-                                    <div class="h-6 w-11 rounded-full bg-gray-300 peer-checked:bg-blue-600 transition-colors"></div>
-                                    <div class="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-5"></div>
-                                </div>
+                            <label class="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition">
+                                <span class="text-sm text-gray-700">{{ $perm->name }}</span>
+                                <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" role="switch"
+                                    class="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-gray-300 transition-colors duration-200 checked:bg-emerald-500 before:absolute before:left-1 before:top-1 before:h-5 before:w-5 before:rounded-full before:bg-white before:shadow before:ring-1 before:ring-gray-200 before:transition-all before:duration-200 before:content-[''] checked:before:left-6 checked:before:ring-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             </label>
                             @endif
                         @endforeach
