@@ -40,22 +40,22 @@
                 ];
             @endphp
 
-            <div class="px-6 py-5 space-y-5">
+            <div class="px-6 py-6 space-y-6">
                 @foreach($groups as $groupName => $group)
                 <div class="border-l-4 {{ $group['border'] }} pl-4">
-                    <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2.5">{{ $groupName }}</h4>
-                    <div class="flex flex-wrap gap-2">
+                    <h4 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">{{ $groupName }}</h4>
+                    <div class="flex flex-wrap gap-2.5">
                         @foreach($group['codes'] as $code)
                             @php
                                 $perm = $permissions->firstWhere('code', $code);
                                 $isSelected = $perm && in_array($perm->id, $selectedPermissions);
                             @endphp
                             @if($perm)
-                            <label class="cursor-pointer">
-                                <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="hidden">
-                                <span class="inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-medium transition-all duration-150 hover:shadow-sm {{ $isSelected ? $group['selected'] : $group['light'] }}">
+                            <label class="cursor-pointer select-none">
+                                <input wire:model="selectedPermissions" type="checkbox" value="{{ $perm->id }}" class="sr-only">
+                                <span class="inline-flex items-center rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 hover:shadow-sm {{ $isSelected ? $group['selected'] : $group['light'] }}">
                                     @if($isSelected)
-                                    <svg class="-ml-0.5 mr-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                    <svg class="-ml-0.5 mr-1.5 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
                                     @endif
                                     {{ $perm->name }}
                                 </span>
