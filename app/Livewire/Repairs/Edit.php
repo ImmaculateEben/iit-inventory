@@ -7,8 +7,10 @@ use App\Models\RepairRecord;
 use App\Support\Audit\AuditLogger;
 use Livewire\Component;
 
-class Create extends Component
+class Edit extends Component
 {
+    public RepairRecord $repairRecord;
+
     // Searchable item selection
     public string $itemSearch = '';
     public ?int $inventory_item_id = null;
@@ -21,6 +23,30 @@ class Create extends Component
     public string $repair_description = '';
     public ?string $repair_date = null;
     public string $status = 'reported';
+
+    public function mount(RepairRecord $repairRecord): void
+    {
+        $this->repairRecord = $repairRecord->load('inventoryItem', 'createdBy');
+
+        // Only admin or the reporter can edit
+        $user = auth()->user();
+        abort_unless(
+            $user->isAdmin() || $repairRecord->created_by_user_id === $user->id,
+            403
+        );
+
+        $this->inventory_item_id = $repairRecord->inventory_item_id;
+        $this->action_type = $repairRecord->action_type ?? 'repair';
+        $this->component_repaired = $repairRecord->component_repaired ?? '';
+        $this->repair_description = $repairRecord->repair_description ?? '';
+        $this->repair_date = $repairRecord->repair_date?->format('Y-m-d');
+        $this->status = $repairRecord->status->value ?? $repairRecord->status;
+
+        if ($repairRecord->inventoryItem) {
+            $item = $repairRecord->inventoryItem;
+            $this->selectedItemLabel = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name;
+        }
+    }
 
     protected function rules(): array
     {
@@ -70,8 +96,7 @@ class Create extends Component
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
 
-        $repair = RepairRecord::create([
-            'repair_number' => RepairRecord::generateNumber(),
+        $this->repairRecord->update([
             'action_type' => $this->action_type,
             'inventory_item_id' => $this->inventory_item_id,
             'department_id' => $item->department_id,
@@ -79,15 +104,14 @@ class Create extends Component
             'repair_description' => $this->repair_description,
             'problem_description' => $this->repair_description,
             'repair_date' => $this->repair_date,
-            'date_reported' => now(),
             'status' => $this->status,
-            'created_by_user_id' => auth()->id(),
+            'updated_by_user_id' => auth()->id(),
         ]);
 
-        AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
+        AuditLogger::log('repair_updated', RepairRecord::class, $this->repairRecord->id);
 
-        session()->flash('success', ucfirst($this->action_type) . ' record created.');
-        return $this->redirect(route('repairs.index'), navigate: true);
+        session()->flash('success', ucfirst($this->action_type) . ' record updated.');
+        return $this->redirect(route('repairs.show', $this->repairRecord), navigate: true);
     }
 
     public function render()
@@ -106,7 +130,7 @@ class Create extends Component
                 ->get();
         }
 
-        return view('livewire.repairs.create', [
+        return view('livewire.repairs.edit', [
             'filteredItems' => $filteredItems,
         ])->layout('layouts.app');
     }

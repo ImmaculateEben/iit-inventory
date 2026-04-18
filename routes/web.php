@@ -14,6 +14,7 @@ use App\Livewire\Returns\Index as ReturnsIndex;
 use App\Livewire\Repairs\Index as RepairsIndex;
 use App\Livewire\Repairs\Create as RepairsCreate;
 use App\Livewire\Repairs\Show as RepairsShow;
+use App\Livewire\Repairs\Edit as RepairsEdit;
 use App\Livewire\Adjustments\Index as AdjustmentsIndex;
 use App\Livewire\Adjustments\Create as AdjustmentsCreate;
 use App\Livewire\Departments\Index as DepartmentsIndex;
@@ -59,6 +60,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/repairs', RepairsIndex::class)->name('repairs.index');
     Route::get('/repairs/create', RepairsCreate::class)->name('repairs.create')->middleware('permission:manage_repairs');
     Route::get('/repairs/{repairRecord}', RepairsShow::class)->name('repairs.show');
+    Route::get('/repairs/{repairRecord}/edit', RepairsEdit::class)->name('repairs.edit');
 
     // Stock Adjustments
     Route::get('/adjustments', AdjustmentsIndex::class)->name('adjustments.index')->middleware('permission:adjust_stock');

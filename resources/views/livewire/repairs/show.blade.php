@@ -4,7 +4,15 @@
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
             Back to Repairs
         </a>
-        <h2 class="mt-2 text-2xl font-bold text-gray-900">Repair: {{ $repairRecord->inventoryItem?->item_name }}</h2>
+        <div class="mt-2 flex items-center gap-4">
+            <h2 class="text-2xl font-bold text-gray-900">Repair: {{ $repairRecord->inventoryItem?->item_name }}</h2>
+            @if(auth()->user()->isAdmin() || $repairRecord->created_by_user_id === auth()->id())
+            <a href="{{ route('repairs.edit', $repairRecord) }}" class="inline-flex items-center gap-1 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/></svg>
+                Edit
+            </a>
+            @endif
+        </div>
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

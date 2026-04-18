@@ -1,10 +1,10 @@
 <div>
     <div class="mb-6">
-        <a href="{{ route('repairs.index') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+        <a href="{{ route('repairs.show', $repairRecord) }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
-            Back to Repairs
+            Back to Record
         </a>
-        <h2 class="mt-2 text-2xl font-bold text-gray-900">Report Repair / Replacement</h2>
+        <h2 class="mt-2 text-2xl font-bold text-gray-900">Edit {{ ucfirst($action_type) }} Record</h2>
     </div>
 
     <form wire:submit="save" class="space-y-6">
@@ -108,14 +108,15 @@
                         placeholder="Describe the {{ $action_type }} work done..."></textarea>
                     @error('repair_description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                 </div>
+
             </div>
         </div>
 
         <div class="flex justify-end gap-3">
-            <a href="{{ route('repairs.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">Cancel</a>
+            <a href="{{ route('repairs.show', $repairRecord) }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 transition">Cancel</a>
             <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition">
-                <span wire:loading.remove wire:target="save">Submit Report</span>
-                <span wire:loading wire:target="save">Submitting...</span>
+                <span wire:loading.remove wire:target="save">Update Record</span>
+                <span wire:loading wire:target="save">Updating...</span>
             </button>
         </div>
     </form>

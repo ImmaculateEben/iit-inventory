@@ -58,8 +58,11 @@
                             <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $rColors[$repair->status->value ?? $repair->status] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst(str_replace('_', ' ', $repair->status->value ?? $repair->status)) }}</span>
                         </td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ $repair->createdBy?->name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm space-x-3">
                             <a href="{{ route('repairs.show', $repair) }}" class="text-blue-600 hover:text-blue-800">View</a>
+                            @if(auth()->user()->isAdmin() || $repair->created_by_user_id === auth()->id())
+                            <a href="{{ route('repairs.edit', $repair) }}" class="text-gray-600 hover:text-gray-800">Edit</a>
+                            @endif
                         </td>
                     </tr>
                     @empty
