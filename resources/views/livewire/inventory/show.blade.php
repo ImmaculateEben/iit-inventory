@@ -56,14 +56,13 @@
             @endif
 
             {{-- Location --}}
-            @if($inventoryItem->floor || $inventoryItem->venue || $inventoryItem->venue_storage || $inventoryItem->location)
+            @if($inventoryItem->floor || $inventoryItem->venue || $inventoryItem->venue_storage)
             <div class="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
                 <h3 class="text-base font-semibold text-gray-900 mb-4">Location</h3>
                 <dl class="grid grid-cols-2 gap-4">
                     <div><dt class="text-xs font-medium text-gray-500 uppercase">Floor</dt><dd class="mt-1 text-sm text-gray-900">{{ $inventoryItem->floor ?: '—' }}</dd></div>
                     <div><dt class="text-xs font-medium text-gray-500 uppercase">Venue / Room</dt><dd class="mt-1 text-sm text-gray-900">{{ $inventoryItem->venue ?: '—' }}</dd></div>
                     <div><dt class="text-xs font-medium text-gray-500 uppercase">Storage Area</dt><dd class="mt-1 text-sm text-gray-900">{{ $inventoryItem->venue_storage ?: '—' }}</dd></div>
-                    <div><dt class="text-xs font-medium text-gray-500 uppercase">General Location</dt><dd class="mt-1 text-sm text-gray-900">{{ $inventoryItem->location ?: '—' }}</dd></div>
                 </dl>
             </div>
             @endif
@@ -170,7 +169,6 @@
                         <thead class="bg-gray-50/50"><tr>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Repair Date</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Component</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Description</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Status</th>
                             <th class="px-6 py-3"></th>
                         </tr></thead>
@@ -179,7 +177,6 @@
                             <tr class="hover:bg-gray-50/50">
                                 <td class="whitespace-nowrap px-6 py-3 text-sm text-gray-600">{{ $repair->repair_date?->format('M d, Y') ?? '—' }}</td>
                                 <td class="whitespace-nowrap px-6 py-3 text-sm font-medium text-gray-900">{{ $repair->component_repaired ?? '—' }}</td>
-                                <td class="px-6 py-3 text-sm text-gray-600 max-w-xs truncate">{{ $repair->repair_description ?? $repair->problem_description }}</td>
                                 <td class="whitespace-nowrap px-6 py-3">
                                     @php $rColors = ['reported'=>'bg-yellow-50 text-yellow-700','sent_for_repair'=>'bg-blue-50 text-blue-700','in_repair'=>'bg-indigo-50 text-indigo-700','repaired'=>'bg-green-50 text-green-700','returned'=>'bg-emerald-50 text-emerald-700','not_repairable'=>'bg-red-50 text-red-700']; @endphp
                                     <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $rColors[$repair->status->value ?? $repair->status] ?? 'bg-gray-100 text-gray-600' }}">{{ ucfirst(str_replace('_', ' ', $repair->status->value ?? $repair->status)) }}</span>
