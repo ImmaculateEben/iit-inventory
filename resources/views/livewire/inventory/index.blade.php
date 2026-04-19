@@ -107,10 +107,6 @@
                 </tbody>
             </table>
         </div>
-        @if($items->hasPages())
-        <div class="border-t border-gray-100 px-6 py-4">
-            {{ $items->links() }}
-        </div>
-        @endif
+        <x-table-footer :paginator="$items" />
     </div>
 </div>

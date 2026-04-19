@@ -11,7 +11,9 @@ class Index extends Component
     use WithPagination;
     public string $search = '';
     public string $filterAction = '';
+    public int $perPage = 25;
     public function updatingSearch(): void { $this->resetPage(); }
+    public function updatingPerPage(): void { $this->resetPage(); }
 
     public function render()
     {
@@ -31,7 +33,7 @@ class Index extends Component
                    ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$this->search}%"));
             }))
             ->when($this->filterAction, fn($q) => $q->where('action_code', $this->filterAction))
-            ->latest('created_at')->paginate(25);
+            ->latest('created_at')->paginate($this->perPage);
 
         $actionsQuery = AuditLog::select('action_code')->distinct()->orderBy('action_code');
         if (!$user->isAdmin()) {

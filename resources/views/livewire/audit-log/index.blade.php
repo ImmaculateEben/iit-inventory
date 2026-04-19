@@ -96,6 +96,6 @@
                 </tbody>
             </table>
         </div>
-        @if($logs->hasPages())<div class="border-t border-gray-100 px-6 py-4">{{ $logs->links() }}</div>@endif
+        <x-table-footer :paginator="$logs" />
     </div>
 </div>

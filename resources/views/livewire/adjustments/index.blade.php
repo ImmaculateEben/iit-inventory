@@ -56,6 +56,6 @@
                     @endforelse
                 </tbody>
             </table>
-        @if($adjustments->hasPages())<div class="border-t border-gray-100 px-4 py-4">{{ $adjustments->links() }}</div>@endif
+        <x-table-footer :paginator="$adjustments" />
     </div>
 </div>

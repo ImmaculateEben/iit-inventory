@@ -58,7 +58,7 @@
             </table>
         </div>
         @if($issues->hasPages())
-        <div class="border-t border-gray-100 px-6 py-4">{{ $issues->links() }}</div>
+        <x-table-footer :paginator="$issues" />
         @endif
     </div>
 </div>

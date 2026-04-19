@@ -10,13 +10,15 @@ class Index extends Component
 {
     use WithPagination;
     public string $search = '';
+    public int $perPage = 10;
     public function updatingSearch(): void { $this->resetPage(); }
+    public function updatingPerPage(): void { $this->resetPage(); }
 
     public function render()
     {
         $users = User::with(['department', 'roles'])
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('email', 'like', "%{$this->search}%"))
-            ->orderBy('name')->paginate(15);
+            ->orderBy('name')->paginate($this->perPage);
         return view('livewire.users.index', compact('users'))->layout('layouts.app');
     }
 }

@@ -16,12 +16,18 @@ class Index extends Component
     public string $filterDepartment = '';
     public string $sortBy = 'item_name';
     public string $sortDir = 'asc';
+    public int $perPage = 10;
 
     protected array $allowedSorts = ['item_name', 'item_code', 'item_type', 'category_id', 'department_id', 'quantity_in_stock', 'created_at'];
 
     protected $queryString = ['search', 'filterType', 'filterCategory', 'filterDepartment'];
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPerPage(): void
     {
         $this->resetPage();
     }
@@ -70,7 +76,7 @@ class Index extends Component
         }
 
         return view('livewire.inventory.index', [
-            'items' => $query->paginate(15),
+            'items' => $query->paginate($this->perPage),
             'categories' => $categoryQuery->get(),
             'departments' => $departmentQuery->get(),
         ])->layout('layouts.app');

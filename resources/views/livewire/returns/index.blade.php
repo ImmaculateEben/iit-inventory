@@ -50,7 +50,7 @@
             </table>
         </div>
         @if($returns->hasPages())
-        <div class="border-t border-gray-100 px-6 py-4">{{ $returns->links() }}</div>
+        <x-table-footer :paginator="$returns" />
         @endif
     </div>
 </div>

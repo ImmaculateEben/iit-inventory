@@ -46,6 +46,6 @@
                 </tbody>
             </table>
         </div>
-        @if($departments->hasPages())<div class="border-t border-gray-100 px-6 py-4">{{ $departments->links() }}</div>@endif
+        <x-table-footer :paginator="$departments" />
     </div>
 </div>

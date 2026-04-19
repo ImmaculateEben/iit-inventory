@@ -12,8 +12,10 @@ class Index extends Component
 
     public string $search = '';
     public string $filterStatus = '';
+    public int $perPage = 10;
 
     public function updatingSearch(): void { $this->resetPage(); }
+    public function updatingPerPage(): void { $this->resetPage(); }
 
     public function render()
     {
@@ -27,7 +29,7 @@ class Index extends Component
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")->orWhere('item_code', 'like', "%{$this->search}%")))
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->latest()
-            ->paginate(15);
+            ->paginate($this->perPage);
 
         return view('livewire.repairs.index', compact('repairs'))->layout('layouts.app');
     }
