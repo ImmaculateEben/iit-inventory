@@ -218,7 +218,18 @@
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-3 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
                                 <td class="whitespace-nowrap px-6 py-3 text-sm text-gray-600">{{ $adj->performedBy?->name ?? '—' }}</td>
-                                <td class="px-6 py-3 text-sm text-gray-500 max-w-xs truncate">{{ $adj->note ?? '—' }}</td>
+                                <td class="px-6 py-3 text-sm text-gray-500" x-data="{ open: false }">
+                                    <div class="relative max-w-[10rem]">
+                                        <span class="block truncate cursor-default" @mouseenter="open = true" @mouseleave="open = false">{{ $adj->note ?? '—' }}</span>
+                                        @if($adj->note)
+                                        <div x-show="open" x-transition.opacity.duration.150ms x-cloak
+                                             class="absolute bottom-full left-0 z-50 mb-2 w-72 rounded-lg bg-gray-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg ring-1 ring-gray-900/5">
+                                            {{ $adj->note }}
+                                            <div class="absolute top-full left-4 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
+                                        </div>
+                                        @endif
+                                    </div>
+                                </td>
                             </tr>
                             @empty
                             <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">No stock adjustments yet.</td></tr>
