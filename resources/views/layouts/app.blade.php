@@ -96,7 +96,7 @@
                                                 </div>
                                                 <div class="min-w-0 flex-1">
                                                     <p class="text-sm font-medium text-gray-900 truncate">{{ $alert['item_name'] }}</p>
-                                                    <p class="text-xs text-gray-500">{{ $alert['item_code'] }} &middot; {{ $alert['department_name'] }}</p>
+                                                    <p class="text-xs text-gray-500">{{ $alert['department_name'] }}</p>
                                                     <p class="text-xs font-medium text-amber-600">{{ $alert['quantity_available'] }} left (threshold: {{ $alert['effective_threshold'] }})</p>
                                                 </div>
                                             </a>
