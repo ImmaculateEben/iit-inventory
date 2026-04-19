@@ -84,7 +84,23 @@ class Create extends Component
         // Enforce department/category access boundary
         abort_unless(auth()->user()->canAccessItem($item), 403, 'You do not have access to this item.');
 
-        DB::transaction(function () use ($item) {
+        $saved = false;
+
+        DB::transaction(function () use ($item, &$saved) {
+            // Re-read with lock to prevent race condition
+            $item = InventoryItem::lockForUpdate()->findOrFail($item->id);
+
+            // Validate stock before decrementing
+            if ($this->status === 'not_repairable' && $item->quantity_available < 1) {
+                $this->addError('status', 'Cannot mark as not repairable — no available stock to deduct.');
+                return;
+            }
+
+            if (in_array($this->status, ['sent_for_repair', 'in_repair']) && $item->quantity_available < 1) {
+                $this->addError('status', 'Cannot send for repair — no available stock.');
+                return;
+            }
+
             $repair = RepairRecord::forceCreate([
                 'repair_number' => RepairRecord::generateNumber(),
                 'action_type' => $this->action_type,
@@ -112,7 +128,12 @@ class Create extends Component
             }
 
             AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
+            $saved = true;
         });
+
+        if (!$saved) {
+            return;
+        }
 
         $this->clearFormState();
         session()->flash('success', ucfirst($this->action_type) . ' record created.');

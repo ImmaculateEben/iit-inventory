@@ -80,7 +80,9 @@ class Create extends Component
             return;
         }
 
-        DB::transaction(function () use ($issue) {
+        $saved = false;
+
+        DB::transaction(function () use ($issue, &$saved) {
             // Lock the issue record first to prevent race conditions
             $issue = IssueRecord::lockForUpdate()->findOrFail($issue->id);
             $outstanding = $issue->outstandingQuantity();
@@ -120,7 +122,12 @@ class Create extends Component
             ]);
 
             session()->flash('success', 'Return recorded successfully.');
+            $saved = true;
         });
+
+        if (!$saved) {
+            return;
+        }
 
         $this->clearFormState();
         return $this->redirect(route('returns.index'), navigate: true);

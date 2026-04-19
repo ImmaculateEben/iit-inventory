@@ -37,7 +37,9 @@ class Create extends Component
     {
         $this->validate();
 
-        DB::transaction(function () {
+        $saved = false;
+
+        DB::transaction(function () use (&$saved) {
             $item = InventoryItem::lockForUpdate()->findOrFail($this->inventory_item_id);
 
             // Enforce department/category access boundary
@@ -48,7 +50,7 @@ class Create extends Component
             $increase = in_array($this->adjustment_type, ['stock_in', 'correction_increase']);
 
             if (!$increase && $item->quantity_available < $this->quantity) {
-                $this->addError('quantity', 'Insufficient stock. Available: ' . $item->quantity_available);
+                $this->addError('quantity', 'Insufficient stock. Only ' . $item->quantity_available . ' available.');
                 return;
             }
 
@@ -77,7 +79,12 @@ class Create extends Component
             AuditLogger::log('stock_adjusted', StockAdjustment::class, $adjustment->id, ['qty' => $before], ['qty' => $before + $deltaTotal]);
 
             session()->flash('success', 'Stock adjustment recorded.');
+            $saved = true;
         });
+
+        if (!$saved) {
+            return;
+        }
 
         $this->clearFormState();
         return $this->redirect(route('adjustments.index'), navigate: true);

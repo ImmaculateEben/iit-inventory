@@ -143,7 +143,9 @@ class Create extends Component
         // Use the item's actual department_id to prevent IDOR
         $departmentId = $item->department_id;
 
-        DB::transaction(function () use ($item, $departmentId) {
+        $saved = false;
+
+        DB::transaction(function () use ($item, $departmentId, &$saved) {
             if ($this->action_type === 'assign') {
                 $unit = AssetUnit::where('id', $this->asset_unit_id)
                     ->where('inventory_item_id', $item->id)
@@ -174,12 +176,13 @@ class Create extends Component
                 ]);
 
                 session()->flash('success', 'Item assigned successfully.');
+                $saved = true;
             } else {
                 // Re-read with lock to prevent race condition
                 $item = InventoryItem::lockForUpdate()->findOrFail($item->id);
 
                 if ($item->quantity_available < $this->quantity) {
-                    $this->addError('quantity', 'Not enough stock. Available: ' . $item->quantity_available);
+                    $this->addError('quantity', 'Not enough stock. Only ' . $item->quantity_available . ' available.');
                     return;
                 }
 
@@ -204,8 +207,13 @@ class Create extends Component
                 ]);
 
                 session()->flash('success', 'Item issued successfully.');
+                $saved = true;
             }
         });
+
+        if (!$saved) {
+            return;
+        }
 
         $this->clearFormState();
         return $this->redirect(route('issues.index'), navigate: true);
