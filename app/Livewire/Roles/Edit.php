@@ -16,6 +16,8 @@ class Edit extends Component
 
     public function mount(Role $role): void
     {
+        abort_if($role->is_system, 403, 'System roles cannot be modified.');
+
         $this->role = $role;
         $this->name = $role->name;
         $this->description = $role->description ?? '';
@@ -33,8 +35,28 @@ class Edit extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_roles_permissions'), 403);
+
+        // Prevent editing system roles
+        abort_if($this->role->is_system, 403, 'System roles cannot be modified.');
+
         $this->validate();
         $this->role->update(['name' => $this->name, 'description' => $this->description]);
+
+        // Non-admin users can only assign permissions they themselves hold
+        if (!auth()->user()->isAdmin()) {
+            $userPermissionIds = auth()->user()->roles()
+                ->with('permissions')
+                ->get()
+                ->flatMap(fn($role) => $role->permissions)
+                ->pluck('id')
+                ->toArray();
+            $this->selectedPermissions = array_values(array_intersect(
+                array_map('intval', $this->selectedPermissions),
+                $userPermissionIds
+            ));
+        }
+
         $this->role->permissions()->sync($this->selectedPermissions);
         AuditLogger::log('role_updated', Role::class, $this->role->id);
         session()->flash('success', 'Role updated.');

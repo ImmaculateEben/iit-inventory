@@ -186,7 +186,6 @@ class Create extends Component
         ])->toArray();
 
         $itemData['is_active'] = $this->is_active;
-        $itemData['created_by'] = auth()->id();
 
         if ($this->tracking_method === 'quantity') {
             $itemData['quantity_in_stock'] = $this->quantity_in_stock;
@@ -199,12 +198,14 @@ class Create extends Component
             $itemData['quantity_available'] = $unitCount;
         }
 
-        $item = InventoryItem::create($itemData);
+        $itemData['created_by'] = auth()->id();
+
+        $item = InventoryItem::forceCreate($itemData);
 
         // Create asset units for individual tracking
         if ($this->tracking_method === 'individual') {
             foreach ($this->assetUnits as $unitData) {
-                $item->assetUnits()->create([
+                $item->assetUnits()->forceCreate([
                     'serial_number' => $unitData['serial_number'] ?: null,
                     'asset_tag' => $unitData['asset_tag'] ?: null,
                     'condition_status' => $unitData['condition_status'],
@@ -242,7 +243,7 @@ class Create extends Component
             if ($canManageFields) {
                 $customField = CustomField::firstOrCreate(
                     ['field_key' => $fieldKey],
-                    ['label' => $ef['label'], 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => (bool) $ef['save_for_future']]
+                    ['label' => preg_replace('/[^\w\s\-]/u', '', $ef['label']), 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => (bool) $ef['save_for_future']]
                 );
             } else {
                 // Without permission, only use an existing field — never create new definitions
@@ -273,6 +274,7 @@ class Create extends Component
             'categories' => Category::orderBy('name')->get(),
             'departments' => Department::orderBy('name')->get(),
             'customFields' => CustomField::where('entity_scope', 'inventory_item')->where('is_active', true)->orderBy('label')->get(),
+            'extraFieldLabelPattern' => '/^[\w\s\-]+$/u',
         ])->layout('layouts.app');
     }
 }

@@ -55,7 +55,7 @@ class Create extends Component
             $deltaTotal = $increase ? $this->quantity : -$this->quantity;
             $deltaAvailable = $deltaTotal;
 
-            $adjustment = StockAdjustment::create([
+            $adjustment = StockAdjustment::forceCreate([
                 'adjustment_number' => StockAdjustment::generateNumber(),
                 'inventory_item_id' => $this->inventory_item_id,
                 'action_type' => $this->adjustment_type,

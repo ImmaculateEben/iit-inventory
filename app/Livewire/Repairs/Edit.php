@@ -101,7 +101,7 @@ class Edit extends Component
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
 
-        $this->repairRecord->update([
+        $this->repairRecord->forceFill([
             'action_type' => $this->action_type,
             'inventory_item_id' => $this->inventory_item_id,
             'department_id' => $item->department_id,
@@ -111,7 +111,7 @@ class Edit extends Component
             'repair_date' => $this->repair_date,
             'status' => $this->status,
             'updated_by_user_id' => auth()->id(),
-        ]);
+        ])->save();
 
         AuditLogger::log('repair_updated', RepairRecord::class, $this->repairRecord->id);
 

@@ -9,9 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class StockAdjustment extends Model
 {
     protected $fillable = [
-        'adjustment_number', 'inventory_item_id', 'action_type',
-        'delta_total', 'delta_available', 'delta_issued', 'delta_damaged', 'delta_under_repair',
-        'performed_by_user_id', 'performed_at', 'note',
+        'adjustment_number', 'inventory_item_id', 'action_type', 'note',
         'related_issue_record_id', 'related_return_record_id', 'related_repair_record_id',
     ];
 

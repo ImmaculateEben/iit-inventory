@@ -81,7 +81,7 @@ class Create extends Component
         }
 
         DB::transaction(function () use ($issue) {
-            // Re-check under lock
+            // Lock the issue record first to prevent race conditions
             $issue = IssueRecord::lockForUpdate()->findOrFail($issue->id);
             $outstanding = $issue->outstandingQuantity();
 
@@ -90,7 +90,7 @@ class Create extends Component
                 return;
             }
 
-            $return = ReturnRecord::create([
+            $return = ReturnRecord::forceCreate([
                 'issue_record_id' => $issue->id,
                 'inventory_item_id' => $issue->inventory_item_id,
                 'asset_unit_id' => $issue->asset_unit_id,

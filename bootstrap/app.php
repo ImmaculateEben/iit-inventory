@@ -11,6 +11,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(\App\Http\Middleware\SecureHeaders::class);
+
         $middleware->alias([
             'active' => \App\Http\Middleware\EnsureUserIsActive::class,
             'permission' => \App\Http\Middleware\RequirePermission::class,

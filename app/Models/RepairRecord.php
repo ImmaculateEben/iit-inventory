@@ -12,7 +12,7 @@ class RepairRecord extends Model
         'repair_number', 'action_type', 'inventory_item_id', 'asset_unit_id', 'department_id',
         'quantity', 'problem_description', 'component_repaired', 'repair_description',
         'repair_notes', 'date_reported', 'repair_date', 'date_sent', 'date_returned',
-        'status', 'created_by_user_id', 'updated_by_user_id',
+        'status',
     ];
 
     protected function casts(): array

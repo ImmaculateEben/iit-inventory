@@ -70,6 +70,8 @@ class Create extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_categories'), 403);
+
         $validated = $this->validate();
         $validated['is_active'] = $this->is_active;
         $cat = Category::create($validated);

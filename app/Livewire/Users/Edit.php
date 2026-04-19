@@ -8,6 +8,7 @@ use App\Models\Role;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 
 class Edit extends Component
@@ -44,7 +45,7 @@ class Edit extends Component
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $this->user->id,
-            'password' => 'nullable|string|min:8',
+            'password' => ['nullable', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
             'department_id' => 'required|exists:departments,id',
             'selectedRoles' => 'required|array|min:1',
             'can_view_all_inventory' => 'boolean',
@@ -55,6 +56,8 @@ class Edit extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_users'), 403);
+
         $this->validate();
 
         // Prevent non-admin from editing admin accounts
@@ -73,7 +76,7 @@ class Edit extends Component
             'email' => $this->email,
             'department_id' => $this->department_id,
             'is_active' => $this->is_active,
-            'can_view_all_inventory' => $this->can_view_all_inventory,
+            'can_view_all_inventory' => auth()->user()->isAdmin() ? $this->can_view_all_inventory : $this->user->can_view_all_inventory,
         ];
         if ($this->password) $data['password'] = Hash::make($this->password);
         $this->user->update($data);

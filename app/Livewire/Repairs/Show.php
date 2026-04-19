@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Repairs;
 
+use App\Enums\RepairStatus;
 use App\Models\RepairRecord;
 use App\Support\Audit\AuditLogger;
 use Livewire\Component;
@@ -27,14 +28,26 @@ class Show extends Component
             abort(403);
         }
 
-        $old = $this->repairRecord->status;
+        // Verify user can access the underlying inventory item
+        if ($this->repairRecord->inventoryItem) {
+            abort_unless($user->canAccessItem($this->repairRecord->inventoryItem), 403, 'You do not have access to this item.');
+        }
+
+        $targetStatus = RepairStatus::tryFrom($status);
+        abort_unless($targetStatus, 422, 'Invalid repair status.');
+
+        $currentStatus = $this->repairRecord->status;
+        abort_unless($currentStatus->canTransitionTo($targetStatus), 422,
+            "Cannot transition from '{$currentStatus->label()}' to '{$targetStatus->label()}'.");
+
+        $old = $currentStatus;
         $data = ['status' => $status];
 
-        if ($status === 'sent_for_repair') $data['sent_date'] = now();
-        if ($status === 'returned' || $status === 'repaired') $data['return_date'] = now();
+        if ($targetStatus === RepairStatus::SentForRepair) $data['date_sent'] = now();
+        if ($targetStatus === RepairStatus::Returned || $targetStatus === RepairStatus::Repaired) $data['date_returned'] = now();
 
         $this->repairRecord->update($data);
-        AuditLogger::log('repair_status_updated', RepairRecord::class, $this->repairRecord->id, ['status' => $old], ['status' => $status]);
+        AuditLogger::log('repair_status_updated', RepairRecord::class, $this->repairRecord->id, ['status' => $old->value], ['status' => $status]);
 
         session()->flash('success', 'Status updated.');
     }

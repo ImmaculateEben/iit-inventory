@@ -20,10 +20,9 @@ class InventoryItem extends Model
         'location', 'floor', 'venue', 'venue_storage',
         // Details
         'size', 'remarks',
-        // Stock
-        'low_stock_threshold', 'quantity_in_stock', 'reorder_level',
-        'quantity_total', 'quantity_available', 'quantity_issued', 'quantity_damaged', 'quantity_under_repair',
-        'is_active', 'archived_at', 'created_by', 'updated_by',
+        // Stock (thresholds only - quantities are managed server-side)
+        'low_stock_threshold', 'reorder_level',
+        'is_active',
     ];
 
     protected function casts(): array

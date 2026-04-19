@@ -11,7 +11,7 @@ class IssueRecord extends Model
     protected $fillable = [
         'issue_number', 'action_type', 'request_line_id', 'inventory_item_id', 'asset_unit_id',
         'department_id', 'staff_directory_id', 'staff_name_snapshot',
-        'quantity', 'returned_quantity', 'issued_by_user_id', 'issued_at', 'note',
+        'quantity', 'note',
     ];
 
     protected function casts(): array

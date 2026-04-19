@@ -11,7 +11,7 @@ class ReturnRecord extends Model
     protected $fillable = [
         'issue_record_id', 'inventory_item_id', 'asset_unit_id', 'department_id',
         'staff_directory_id', 'staff_name_snapshot', 'returned_quantity',
-        'return_condition', 'received_by_user_id', 'returned_at', 'note',
+        'return_condition', 'note',
     ];
 
     protected function casts(): array

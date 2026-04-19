@@ -74,6 +74,8 @@ class Create extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_repairs'), 403);
+
         $this->validate();
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
@@ -81,7 +83,7 @@ class Create extends Component
         // Enforce department/category access boundary
         abort_unless(auth()->user()->canAccessItem($item), 403, 'You do not have access to this item.');
 
-        $repair = RepairRecord::create([
+        $repair = RepairRecord::forceCreate([
             'repair_number' => RepairRecord::generateNumber(),
             'action_type' => $this->action_type,
             'inventory_item_id' => $this->inventory_item_id,

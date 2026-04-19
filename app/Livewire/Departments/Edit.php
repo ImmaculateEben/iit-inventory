@@ -69,6 +69,8 @@ class Edit extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_departments'), 403);
+
         $validated = $this->validate();
         $validated['is_active'] = $this->is_active;
         $this->department->update($validated);

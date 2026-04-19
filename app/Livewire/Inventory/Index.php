@@ -17,6 +17,8 @@ class Index extends Component
     public string $sortBy = 'item_name';
     public string $sortDir = 'asc';
 
+    protected array $allowedSorts = ['item_name', 'item_code', 'item_type', 'category_id', 'department_id', 'quantity_in_stock', 'created_at'];
+
     protected $queryString = ['search', 'filterType', 'filterCategory', 'filterDepartment'];
 
     public function updatingSearch(): void
@@ -26,6 +28,10 @@ class Index extends Component
 
     public function sort(string $column): void
     {
+        if (!in_array($column, $this->allowedSorts)) {
+            return;
+        }
+
         if ($this->sortBy === $column) {
             $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
         } else {
@@ -48,9 +54,9 @@ class Index extends Component
                    ->orWhere('item_code', 'like', "%{$this->search}%");
             }))
             ->when($this->filterType, fn($q) => $q->where('item_type', $this->filterType))
-            ->when($this->filterCategory, fn($q) => $q->where('category_id', $this->filterCategory))
-            ->when($this->filterDepartment, fn($q) => $q->where('department_id', $this->filterDepartment))
-            ->orderBy($this->sortBy, $this->sortDir);
+            ->when($this->filterCategory && ($catIds === null || in_array($this->filterCategory, $catIds)), fn($q) => $q->where('category_id', $this->filterCategory))
+            ->when($this->filterDepartment && ($deptIds === null || in_array($this->filterDepartment, $deptIds)), fn($q) => $q->where('department_id', $this->filterDepartment))
+            ->orderBy(in_array($this->sortBy, $this->allowedSorts) ? $this->sortBy : 'item_name', $this->sortDir);
 
         // Scope filter dropdowns to accessible items
         $departmentQuery = \App\Models\Department::orderBy('name');

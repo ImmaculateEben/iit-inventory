@@ -39,7 +39,7 @@ class AuthController extends Controller
         if (!Auth::attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($throttleKey, 60);
 
-            AuditLogger::log('login_failed', 'user', null, $request->input('email') . ' from ' . $request->ip());
+            AuditLogger::log('login_failed', 'user', null, 'Failed login attempt from ' . $request->ip());
 
             return back()->withErrors([
                 'email' => 'The provided credentials do not match our records.',
@@ -62,7 +62,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        $user->update(['last_login_at' => now()]);
+        $user->forceFill(['last_login_at' => now()])->save();
 
         AuditLogger::log('user.login', 'user', $user->id, "{$user->name} logged in");
 
@@ -71,6 +71,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        $userId = Auth::id();
+        AuditLogger::log('user.logout', 'user', $userId, 'User logged out');
+
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

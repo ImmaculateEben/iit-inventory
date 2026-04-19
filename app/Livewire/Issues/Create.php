@@ -151,7 +151,7 @@ class Create extends Component
                     ->lockForUpdate()
                     ->firstOrFail();
 
-                $issue = IssueRecord::create([
+                $issue = IssueRecord::forceCreate([
                     'issue_number' => IssueRecord::generateNumber(),
                     'action_type' => 'assign',
                     'inventory_item_id' => $item->id,
@@ -183,7 +183,7 @@ class Create extends Component
                     return;
                 }
 
-                $issue = IssueRecord::create([
+                $issue = IssueRecord::forceCreate([
                     'issue_number' => IssueRecord::generateNumber(),
                     'action_type' => 'issue',
                     'inventory_item_id' => $item->id,

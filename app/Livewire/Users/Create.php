@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Audit\AuditLogger;
 use App\Support\RemembersFormState;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
 
 class Create extends Component
@@ -35,7 +36,7 @@ class Create extends Component
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
             'department_id' => 'required|exists:departments,id',
             'selectedRoles' => 'required|array|min:1',
             'can_view_all_inventory' => 'boolean',
@@ -46,6 +47,8 @@ class Create extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_users'), 403);
+
         $this->validate();
 
         // Prevent non-admin from assigning admin role
@@ -60,7 +63,7 @@ class Create extends Component
             'password' => Hash::make($this->password),
             'department_id' => $this->department_id,
             'is_active' => $this->is_active,
-            'can_view_all_inventory' => $this->can_view_all_inventory,
+            'can_view_all_inventory' => auth()->user()->isAdmin() ? $this->can_view_all_inventory : false,
         ]);
         $user->roles()->sync($this->selectedRoles);
 

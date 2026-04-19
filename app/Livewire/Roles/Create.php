@@ -32,6 +32,8 @@ class Create extends Component
 
     public function save()
     {
+        abort_unless(auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_roles_permissions'), 403);
+
         $this->validate();
 
         $code = strtolower(str_replace(' ', '_', trim($this->name)));
@@ -42,6 +44,20 @@ class Create extends Component
             'description' => $this->description ?: null,
             'is_system' => false,
         ]);
+
+        // Non-admin users can only assign permissions they themselves hold
+        if (!auth()->user()->isAdmin()) {
+            $userPermissionIds = auth()->user()->roles()
+                ->with('permissions')
+                ->get()
+                ->flatMap(fn($role) => $role->permissions)
+                ->pluck('id')
+                ->toArray();
+            $this->selectedPermissions = array_values(array_intersect(
+                array_map('intval', $this->selectedPermissions),
+                $userPermissionIds
+            ));
+        }
 
         $role->permissions()->sync($this->selectedPermissions);
 

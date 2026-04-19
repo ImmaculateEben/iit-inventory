@@ -34,4 +34,26 @@ enum RepairStatus: string
             self::NotRepairable => 'red',
         };
     }
+
+    /**
+     * Get the valid statuses that can follow this status.
+     *
+     * @return self[]
+     */
+    public function validTransitions(): array
+    {
+        return match ($this) {
+            self::Reported => [self::SentForRepair, self::NotRepairable],
+            self::SentForRepair => [self::InRepair, self::NotRepairable],
+            self::InRepair => [self::Repaired, self::NotRepairable],
+            self::Repaired => [self::Returned],
+            self::Returned => [],
+            self::NotRepairable => [],
+        };
+    }
+
+    public function canTransitionTo(self $target): bool
+    {
+        return in_array($target, $this->validTransitions(), true);
+    }
 }

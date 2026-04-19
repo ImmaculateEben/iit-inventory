@@ -14,7 +14,6 @@ class AssetUnit extends Model
         'inventory_item_id', 'serial_number', 'asset_tag',
         'assigned_department_id', 'assigned_staff_directory_id', 'assigned_staff_name_snapshot',
         'condition_status', 'unit_status', 'current_location', 'notes',
-        'archived_at', 'created_by', 'updated_by',
     ];
 
     protected function casts(): array

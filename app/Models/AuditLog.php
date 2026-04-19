@@ -9,10 +9,17 @@ class AuditLog extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = [
-        'actor_user_id', 'action_code', 'target_type', 'target_id',
-        'summary', 'metadata_json', 'ip_address', 'user_agent', 'created_at',
-    ];
+    protected $guarded = ['id'];
+
+    protected static function booted(): void
+    {
+        static::updating(function () {
+            throw new \RuntimeException('Audit logs are immutable and cannot be modified.');
+        });
+        static::deleting(function () {
+            throw new \RuntimeException('Audit logs are immutable and cannot be deleted.');
+        });
+    }
 
     protected function casts(): array
     {

@@ -39,7 +39,7 @@ Route::middleware('guest')->group(function () {
 });
 
 // Authenticated routes
-Route::middleware(['auth', 'active'])->group(function () {
+Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/', DashboardIndex::class)->name('dashboard')->middleware('permission:view_dashboard');
 

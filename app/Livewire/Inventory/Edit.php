@@ -57,6 +57,9 @@ class Edit extends Component
 
     public function mount(InventoryItem $inventoryItem): void
     {
+        // Enforce department/category access boundary
+        abort_unless(auth()->user()->canAccessItem($inventoryItem), 403, 'You do not have access to this item.');
+
         $this->inventoryItem = $inventoryItem->load('customFieldValues');
 
         $this->item_code = $inventoryItem->item_code ?? '';
@@ -169,6 +172,10 @@ class Edit extends Component
         }
 
         $validated = $this->validate();
+
+        // Re-check access before saving (in case permissions changed mid-session)
+        abort_unless(auth()->user()->canAccessItem($this->inventoryItem), 403, 'You do not have access to this item.');
+
         $old = $this->inventoryItem->toArray();
 
         $itemData = collect($validated)->only([
@@ -181,9 +188,8 @@ class Edit extends Component
         ])->toArray();
 
         $itemData['is_active'] = $this->is_active;
-        $itemData['updated_by'] = auth()->id();
 
-        $this->inventoryItem->update($itemData);
+        $this->inventoryItem->forceFill(array_merge($itemData, ['updated_by' => auth()->id()]))->save();
 
         // Sync custom field values
         foreach ($this->customFieldValues as $fieldId => $value) {
@@ -226,7 +232,7 @@ class Edit extends Component
                 $customField = CustomField::firstOrCreate(
                     ['field_key' => $fieldKey],
                     [
-                        'label' => $ef['label'],
+                        'label' => preg_replace('/[^\w\s\-]/u', '', $ef['label']),
                         'field_type' => $ef['type'],
                         'entity_scope' => 'inventory_item',
                         'is_active' => !empty($ef['save_for_future']),
@@ -256,9 +262,23 @@ class Edit extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $deptIds = $user->getAccessibleDepartmentIds();
+        $catIds = $user->getAccessibleCategoryIds();
+
+        $departmentQuery = Department::orderBy('name');
+        if ($deptIds !== null) {
+            $departmentQuery->whereIn('id', $deptIds);
+        }
+
+        $categoryQuery = Category::orderBy('name');
+        if ($catIds !== null) {
+            $categoryQuery->whereIn('id', $catIds);
+        }
+
         return view('livewire.inventory.edit', [
-            'categories' => Category::orderBy('name')->get(),
-            'departments' => Department::orderBy('name')->get(),
+            'categories' => $categoryQuery->get(),
+            'departments' => $departmentQuery->get(),
             'customFields' => CustomField::where('entity_scope', 'inventory_item')->where('is_active', true)->orderBy('label')->get(),
         ])->layout('layouts.app');
     }
