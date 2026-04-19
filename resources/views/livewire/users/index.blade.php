@@ -36,7 +36,14 @@
                             </div>
                         </td>
                         <td class="whitespace-nowrap px-6 py-4"><span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium {{ $u->is_active ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500' }}"><span class="h-1.5 w-1.5 rounded-full {{ $u->is_active ? 'bg-green-500' : 'bg-gray-400' }}"></span>{{ $u->is_active ? 'Active' : 'Inactive' }}</span></td>
-                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm"><a href="{{ route('users.edit', $u) }}" class="text-blue-600 hover:text-blue-800">Edit</a></td>
+                        <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
+                            <div class="flex items-center justify-end gap-3">
+                                <a href="{{ route('users.edit', $u) }}" class="text-blue-600 hover:text-blue-800">Edit</a>
+                                @if(auth()->user()->isAdmin() && $u->id !== auth()->id() && !$u->archived_at)
+                                    <button wire:click="confirmDelete({{ $u->id }})" class="text-red-600 hover:text-red-800">Delete</button>
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     <tr><td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">No users found.</td></tr>
@@ -46,4 +53,23 @@
         </div>
         <x-table-footer :paginator="$users" />
     </div>
+
+    {{-- Delete Confirmation Modal --}}
+    @if($confirmingDelete)
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" wire:click.self="cancelDelete">
+        <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                    <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900">Delete User</h3>
+            </div>
+            <p class="text-sm text-gray-600 mb-6">Are you sure you want to delete this user? They will be deactivated and their role/access will be removed. This action cannot be undone.</p>
+            <div class="flex justify-end gap-3">
+                <button wire:click="cancelDelete" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">Cancel</button>
+                <button wire:click="deleteUser" class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition">Delete</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

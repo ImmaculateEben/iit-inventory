@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Models\User;
+use App\Support\Audit\AuditLogger;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,8 +12,45 @@ class Index extends Component
     use WithPagination;
     public string $search = '';
     public string|int $perPage = 10;
+    public ?int $confirmingDelete = null;
+
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingPerPage(): void { $this->resetPage(); }
+
+    public function confirmDelete(int $userId): void
+    {
+        $this->confirmingDelete = $userId;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->confirmingDelete = null;
+    }
+
+    public function deleteUser(): void
+    {
+        abort_unless(auth()->user()->isAdmin(), 403);
+
+        $user = User::findOrFail($this->confirmingDelete);
+
+        if ($user->id === auth()->id()) {
+            session()->flash('error', 'You cannot delete your own account.');
+            $this->confirmingDelete = null;
+            return;
+        }
+
+        $user->update([
+            'is_active' => false,
+            'archived_at' => now(),
+        ]);
+        $user->roles()->detach();
+        $user->accessibleDepartments()->detach();
+        $user->accessibleCategories()->detach();
+
+        AuditLogger::log('user_deleted', User::class, $user->id);
+        $this->confirmingDelete = null;
+        session()->flash('success', "User '{$user->name}' has been deleted.");
+    }
 
     public function render()
     {
