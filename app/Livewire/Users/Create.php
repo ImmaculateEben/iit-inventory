@@ -32,13 +32,20 @@ class Create extends Component
     public array $accessibleDepartments = [];
     public array $accessibleCategories = [];
 
+    public function isDepartmentRequired(): bool
+    {
+        if (!$this->selectedRole) return true;
+        $code = Role::find($this->selectedRole)?->code;
+        return !in_array($code, ['admin', 'store_officer']);
+    }
+
     protected function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
-            'department_id' => 'required|exists:departments,id',
+            'department_id' => $this->isDepartmentRequired() ? 'required|exists:departments,id' : 'nullable|exists:departments,id',
             'selectedRole' => 'required|exists:roles,id',
             'can_view_all_inventory' => 'boolean',
             'accessibleDepartments' => 'array',
@@ -65,7 +72,7 @@ class Create extends Component
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
-            'department_id' => $this->department_id,
+            'department_id' => $this->isDepartmentRequired() ? $this->department_id : null,
             'is_active' => $this->is_active,
             'can_view_all_inventory' => auth()->user()->isAdmin() ? $this->can_view_all_inventory : false,
         ]);
