@@ -76,7 +76,7 @@ class Create extends Component
     public function selectItem(int $id): void
     {
         $item = InventoryItem::find($id);
-        if (!$item) return;
+        if (!$item || !auth()->user()->canAccessItem($item)) return;
 
         $this->inventory_item_id = (string) $item->id;
         $this->department_id = (string) $item->department_id;
@@ -137,6 +137,9 @@ class Create extends Component
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
 
+        // Enforce department/category access boundary
+        abort_unless(auth()->user()->canAccessItem($item), 403, 'You do not have access to this item.');
+
         // Use the item's actual department_id to prevent IDOR
         $departmentId = $item->department_id;
 
@@ -173,8 +176,7 @@ class Create extends Component
                 session()->flash('success', 'Item assigned successfully.');
             } else {
                 // Re-read with lock to prevent race condition
-                $item->lockForUpdate()->first();
-                $item->refresh();
+                $item = InventoryItem::lockForUpdate()->findOrFail($item->id);
 
                 if ($item->quantity_available < $this->quantity) {
                     $this->addError('quantity', 'Not enough stock. Available: ' . $item->quantity_available);
@@ -213,11 +215,14 @@ class Create extends Component
     {
         $items = collect();
         if (strlen($this->itemSearch) > 0 && !$this->inventory_item_id) {
-            $query = InventoryItem::where('is_active', true)
-                ->where(function ($q) {
-                    $q->where('item_name', 'like', '%' . $this->itemSearch . '%')
-                      ->orWhere('item_code', 'like', '%' . $this->itemSearch . '%');
-                });
+            $user = auth()->user();
+            $query = $user->scopeInventoryItems(
+                InventoryItem::where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('item_name', 'like', '%' . $this->itemSearch . '%')
+                          ->orWhere('item_code', 'like', '%' . $this->itemSearch . '%');
+                    })
+            );
 
             if ($this->action_type === 'assign') {
                 // For assign, show items with individual tracking that have available units

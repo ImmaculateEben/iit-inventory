@@ -14,7 +14,13 @@ class Index extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $deptIds = $user->getAccessibleDepartmentIds();
+        $catIds = $user->getAccessibleCategoryIds();
+
         $adjustments = StockAdjustment::with(['inventoryItem', 'performedBy'])
+            ->when($deptIds !== null, fn($q) => $q->whereHas('inventoryItem', fn($iq) => $iq->whereIn('department_id', $deptIds)))
+            ->when($catIds !== null, fn($q) => $q->whereHas('inventoryItem', fn($iq) => $iq->whereIn('category_id', $catIds)))
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
             ->latest()->paginate(15);
         return view('livewire.adjustments.index', compact('adjustments'))->layout('layouts.app');

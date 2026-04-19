@@ -26,6 +26,12 @@ class Edit extends Component
     public function mount(User $user): void
     {
         $this->user = $user;
+
+        // Prevent non-admin from editing admin accounts
+        if (!auth()->user()->isAdmin() && $user->isAdmin()) {
+            abort(403, 'Only administrators can edit admin accounts.');
+        }
+
         $this->fill($user->only(['name', 'email', 'is_active', 'can_view_all_inventory']));
         $this->department_id = (string) $user->department_id;
         $this->selectedRoles = $user->roles->pluck('id')->map(fn($id) => (string) $id)->toArray();
@@ -50,6 +56,11 @@ class Edit extends Component
     public function save()
     {
         $this->validate();
+
+        // Prevent non-admin from editing admin accounts
+        if (!auth()->user()->isAdmin() && $this->user->isAdmin()) {
+            abort(403, 'Only administrators can edit admin accounts.');
+        }
 
         // Prevent non-admin from assigning admin role
         if (!auth()->user()->isAdmin()) {

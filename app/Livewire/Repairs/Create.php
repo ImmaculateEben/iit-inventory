@@ -57,7 +57,7 @@ class Create extends Component
     public function selectItem(int $id): void
     {
         $item = InventoryItem::find($id);
-        if ($item) {
+        if ($item && auth()->user()->canAccessItem($item)) {
             $this->inventory_item_id = $item->id;
             $this->selectedItemLabel = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name;
             $this->itemSearch = '';
@@ -77,6 +77,9 @@ class Create extends Component
         $this->validate();
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
+
+        // Enforce department/category access boundary
+        abort_unless(auth()->user()->canAccessItem($item), 403, 'You do not have access to this item.');
 
         $repair = RepairRecord::create([
             'repair_number' => RepairRecord::generateNumber(),
@@ -103,16 +106,15 @@ class Create extends Component
     {
         $filteredItems = [];
         if (strlen($this->itemSearch) >= 1) {
-            $filteredItems = InventoryItem::where('is_active', true)
-                ->where(function ($q) {
-                    $q->where('item_name', 'like', "%{$this->itemSearch}%")
-                      ->orWhere('item_code', 'like', "%{$this->itemSearch}%")
-                      ->orWhere('model_number', 'like', "%{$this->itemSearch}%")
-                      ->orWhere('manufacturer', 'like', "%{$this->itemSearch}%");
-                })
-                ->orderBy('item_name')
-                ->limit(15)
-                ->get();
+            $filteredItems = auth()->user()->scopeInventoryItems(
+                InventoryItem::where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('item_name', 'like', "%{$this->itemSearch}%")
+                          ->orWhere('item_code', 'like', "%{$this->itemSearch}%")
+                          ->orWhere('model_number', 'like', "%{$this->itemSearch}%")
+                          ->orWhere('manufacturer', 'like', "%{$this->itemSearch}%");
+                    })
+            )->orderBy('item_name')->limit(15)->get();
         }
 
         return view('livewire.repairs.create', [

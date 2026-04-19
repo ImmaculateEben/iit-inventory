@@ -44,9 +44,9 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/', DashboardIndex::class)->name('dashboard')->middleware('permission:view_dashboard');
 
     // Inventory
-    Route::get('/inventory', InventoryIndex::class)->name('inventory.index');
+    Route::get('/inventory', InventoryIndex::class)->name('inventory.index')->middleware('permission:view_dashboard');
     Route::get('/inventory/create', InventoryCreate::class)->name('inventory.create')->middleware('permission:manage_inventory');
-    Route::get('/inventory/{inventoryItem}', InventoryShow::class)->name('inventory.show');
+    Route::get('/inventory/{inventoryItem}', InventoryShow::class)->name('inventory.show')->middleware('permission:view_dashboard');
     Route::get('/inventory/{inventoryItem}/edit', InventoryEdit::class)->name('inventory.edit')->middleware('permission:manage_inventory');
 
     // Issues

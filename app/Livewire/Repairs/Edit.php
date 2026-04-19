@@ -35,6 +35,11 @@ class Edit extends Component
             403
         );
 
+        // Enforce department/category access boundary
+        if ($repairRecord->inventoryItem) {
+            abort_unless($user->canAccessItem($repairRecord->inventoryItem), 403, 'You do not have access to this item.');
+        }
+
         $this->inventory_item_id = $repairRecord->inventory_item_id;
         $this->action_type = $repairRecord->action_type ?? 'repair';
         $this->component_repaired = $repairRecord->component_repaired ?? '';
@@ -75,7 +80,7 @@ class Edit extends Component
     public function selectItem(int $id): void
     {
         $item = InventoryItem::find($id);
-        if ($item) {
+        if ($item && auth()->user()->canAccessItem($item)) {
             $this->inventory_item_id = $item->id;
             $this->selectedItemLabel = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name;
             $this->itemSearch = '';
@@ -118,16 +123,15 @@ class Edit extends Component
     {
         $filteredItems = [];
         if (strlen($this->itemSearch) >= 1) {
-            $filteredItems = InventoryItem::where('is_active', true)
-                ->where(function ($q) {
-                    $q->where('item_name', 'like', "%{$this->itemSearch}%")
-                      ->orWhere('item_code', 'like', "%{$this->itemSearch}%")
-                      ->orWhere('model_number', 'like', "%{$this->itemSearch}%")
-                      ->orWhere('manufacturer', 'like', "%{$this->itemSearch}%");
-                })
-                ->orderBy('item_name')
-                ->limit(15)
-                ->get();
+            $filteredItems = auth()->user()->scopeInventoryItems(
+                InventoryItem::where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('item_name', 'like', "%{$this->itemSearch}%")
+                          ->orWhere('item_code', 'like', "%{$this->itemSearch}%")
+                          ->orWhere('model_number', 'like', "%{$this->itemSearch}%")
+                          ->orWhere('manufacturer', 'like', "%{$this->itemSearch}%");
+                    })
+            )->orderBy('item_name')->limit(15)->get();
         }
 
         return view('livewire.repairs.edit', [

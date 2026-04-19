@@ -239,18 +239,15 @@ class Create extends Component
 
             $fieldKey = \Illuminate\Support\Str::slug($ef['label'], '_');
 
-            // Only users with manage_custom_fields can create/persist global custom fields
             if ($canManageFields) {
                 $customField = CustomField::firstOrCreate(
                     ['field_key' => $fieldKey],
                     ['label' => $ef['label'], 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => (bool) $ef['save_for_future']]
                 );
             } else {
-                // Use existing field if one matches, otherwise create as inactive (one-off)
-                $customField = CustomField::firstOrCreate(
-                    ['field_key' => $fieldKey],
-                    ['label' => $ef['label'], 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => false]
-                );
+                // Without permission, only use an existing field — never create new definitions
+                $customField = CustomField::where('field_key', $fieldKey)->first();
+                if (!$customField) continue;
             }
 
             $cfv = ['custom_field_id' => $customField->id, 'entity_type' => 'inventory_item', 'entity_id' => $item->id];

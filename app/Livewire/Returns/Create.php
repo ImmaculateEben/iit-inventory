@@ -47,7 +47,7 @@ class Create extends Component
     {
         if ($value) {
             $issue = IssueRecord::with(['inventoryItem', 'department'])->find($value);
-            if ($issue) {
+            if ($issue && $issue->inventoryItem && auth()->user()->canAccessItem($issue->inventoryItem)) {
                 $outstanding = $issue->outstandingQuantity();
                 $this->maxReturnQuantity = $outstanding;
                 $this->returned_quantity = $outstanding;
@@ -68,7 +68,11 @@ class Create extends Component
     {
         $this->validate();
 
-        $issue = IssueRecord::findOrFail($this->issue_record_id);
+        $issue = IssueRecord::with('inventoryItem')->findOrFail($this->issue_record_id);
+
+        // Enforce department/category access boundary
+        abort_unless($issue->inventoryItem && auth()->user()->canAccessItem($issue->inventoryItem), 403, 'You do not have access to this item.');
+
         $outstanding = $issue->outstandingQuantity();
 
         if ($this->returned_quantity > $outstanding) {
@@ -78,8 +82,7 @@ class Create extends Component
 
         DB::transaction(function () use ($issue) {
             // Re-check under lock
-            $issue->lockForUpdate();
-            $issue->refresh();
+            $issue = IssueRecord::lockForUpdate()->findOrFail($issue->id);
             $outstanding = $issue->outstandingQuantity();
 
             if ($this->returned_quantity > $outstanding) {
@@ -125,8 +128,14 @@ class Create extends Component
 
     public function render()
     {
+        $user = auth()->user();
+        $deptIds = $user->getAccessibleDepartmentIds();
+        $catIds = $user->getAccessibleCategoryIds();
+
         $issueRecords = IssueRecord::with(['inventoryItem', 'department'])
             ->whereRaw('quantity > returned_quantity')
+            ->when($deptIds !== null, fn($q) => $q->whereHas('inventoryItem', fn($iq) => $iq->whereIn('department_id', $deptIds)))
+            ->when($catIds !== null, fn($q) => $q->whereHas('inventoryItem', fn($iq) => $iq->whereIn('category_id', $catIds)))
             ->latest('issued_at')
             ->get();
 

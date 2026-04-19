@@ -39,6 +39,10 @@ class Create extends Component
 
         DB::transaction(function () {
             $item = InventoryItem::lockForUpdate()->findOrFail($this->inventory_item_id);
+
+            // Enforce department/category access boundary
+            abort_unless(auth()->user()->canAccessItem($item), 403, 'You do not have access to this item.');
+
             $before = $item->quantity_in_stock;
 
             $increase = in_array($this->adjustment_type, ['stock_in', 'correction_increase', 'repair_in']);
@@ -82,7 +86,9 @@ class Create extends Component
     public function render()
     {
         return view('livewire.adjustments.create', [
-            'items' => InventoryItem::where('is_active', true)->orderBy('item_name')->get(),
+            'items' => auth()->user()->scopeInventoryItems(
+                InventoryItem::where('is_active', true)
+            )->orderBy('item_name')->get(),
         ])->layout('layouts.app');
     }
 }

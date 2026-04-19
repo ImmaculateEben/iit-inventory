@@ -233,15 +233,9 @@ class Edit extends Component
                     ]
                 );
             } else {
-                $customField = CustomField::firstOrCreate(
-                    ['field_key' => $fieldKey],
-                    [
-                        'label' => $ef['label'],
-                        'field_type' => $ef['type'],
-                        'entity_scope' => 'inventory_item',
-                        'is_active' => false,
-                    ]
-                );
+                // Without permission, only use an existing field — never create new definitions
+                $customField = CustomField::where('field_key', $fieldKey)->first();
+                if (!$customField) continue;
             }
 
             $cfv = ['custom_field_id' => $customField->id, 'entity_type' => 'inventory_item', 'entity_id' => $this->inventoryItem->id];

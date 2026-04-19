@@ -13,6 +13,11 @@ class Show extends Component
     public function mount(RepairRecord $repairRecord): void
     {
         $this->repairRecord = $repairRecord->load(['inventoryItem', 'assetUnit', 'createdBy']);
+
+        // Enforce department/category access boundary
+        if ($repairRecord->inventoryItem) {
+            abort_unless(auth()->user()->canAccessItem($repairRecord->inventoryItem), 403, 'You do not have access to this item.');
+        }
     }
 
     public function updateStatus(string $status): void
