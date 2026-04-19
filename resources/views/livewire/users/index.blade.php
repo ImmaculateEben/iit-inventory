@@ -39,7 +39,7 @@
                         <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
                             <div class="flex items-center justify-end gap-3">
                                 <a href="{{ route('users.edit', $u) }}" class="text-blue-600 hover:text-blue-800">Edit</a>
-                                @if(auth()->user()->isAdmin() && $u->id !== auth()->id() && !$u->archived_at)
+                                @if(auth()->user()->isAdmin() && $u->id !== auth()->id())
                                     <button wire:click="confirmDelete({{ $u->id }})" class="text-red-600 hover:text-red-800">Delete</button>
                                 @endif
                             </div>

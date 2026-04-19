@@ -39,17 +39,16 @@ class Index extends Component
             return;
         }
 
-        $user->update([
-            'is_active' => false,
-            'archived_at' => now(),
-        ]);
+        $userName = $user->name;
+        AuditLogger::log('user_deleted', User::class, $user->id);
+
         $user->roles()->detach();
         $user->accessibleDepartments()->detach();
         $user->accessibleCategories()->detach();
+        $user->delete();
 
-        AuditLogger::log('user_deleted', User::class, $user->id);
         $this->confirmingDelete = null;
-        session()->flash('success', "User '{$user->name}' has been deleted.");
+        session()->flash('success', "User '{$userName}' has been deleted.");
     }
 
     public function render()
