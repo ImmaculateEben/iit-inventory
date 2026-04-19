@@ -4,6 +4,8 @@ namespace App\Support;
 
 trait RemembersFormState
 {
+    protected bool $formStateCleared = false;
+
     abstract protected function formStateFields(): array;
 
     protected function getFormSessionKey(): string
@@ -26,6 +28,10 @@ trait RemembersFormState
 
     public function dehydrateRemembersFormState(): void
     {
+        if ($this->formStateCleared) {
+            return;
+        }
+
         $state = [];
 
         foreach ($this->formStateFields() as $field) {
@@ -39,6 +45,7 @@ trait RemembersFormState
 
     protected function clearFormState(): void
     {
+        $this->formStateCleared = true;
         session()->forget($this->getFormSessionKey());
     }
 }
