@@ -28,6 +28,7 @@ class Create extends Component
     public array $selectedRoles = [];
     public bool $is_active = true;
     public bool $can_view_all_inventory = false;
+    public bool $showAdditionalAccess = false;
     public array $accessibleDepartments = [];
     public array $accessibleCategories = [];
 

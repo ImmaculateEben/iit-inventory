@@ -21,6 +21,7 @@ class Edit extends Component
     public array $selectedRoles = [];
     public bool $is_active = true;
     public bool $can_view_all_inventory = false;
+    public bool $showAdditionalAccess = false;
     public array $accessibleDepartments = [];
     public array $accessibleCategories = [];
 
@@ -38,6 +39,7 @@ class Edit extends Component
         $this->selectedRoles = $user->roles->pluck('id')->map(fn($id) => (string) $id)->toArray();
         $this->accessibleDepartments = $user->accessibleDepartments->pluck('id')->map(fn($id) => (string) $id)->toArray();
         $this->accessibleCategories = $user->accessibleCategories->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        $this->showAdditionalAccess = $user->can_view_all_inventory || count($this->accessibleDepartments) > 0 || count($this->accessibleCategories) > 0;
     }
 
     protected function rules(): array

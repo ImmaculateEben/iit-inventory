@@ -5,16 +5,25 @@
         <div><label class="block text-sm font-medium text-gray-700">Email <span class="text-red-500">*</span></label><input wire:model="email" type="email" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">@error('email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
         <div><label class="block text-sm font-medium text-gray-700">Password <span class="text-red-500">*</span></label><input wire:model="password" type="password" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">@error('password')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
         <div><label class="block text-sm font-medium text-gray-700">Department <span class="text-red-500">*</span></label><select wire:model="department_id" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"><option value="">Select department</option>@foreach($departments as $dept)<option value="{{ $dept->id }}">{{ $dept->name }}</option>@endforeach</select>@error('department_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
-        <div class="sm:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-2">Roles <span class="text-red-500">*</span></label><div class="flex flex-wrap gap-3">@foreach($roles as $role)<label class="inline-flex items-center gap-2"><input wire:model="selectedRoles" type="checkbox" value="{{ $role->id }}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="text-sm text-gray-700">{{ $role->name }}</span></label>@endforeach</div>@error('selectedRoles')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
+        <div class="sm:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-2">Roles <span class="text-red-500">*</span></label><p class="text-xs text-gray-500 mb-3">Select one or more roles for this user.</p><div class="grid grid-cols-2 gap-2 sm:grid-cols-3">@foreach($roles as $role)<label class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer transition-colors {{ in_array((string) $role->id, $selectedRoles) ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 hover:bg-gray-50' }}"><input wire:model.live="selectedRoles" type="checkbox" value="{{ $role->id }}" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"><span class="text-gray-700">{{ $role->name }}</span></label>@endforeach</div>@error('selectedRoles')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
         <div class="flex items-center gap-3"><label class="relative inline-flex cursor-pointer items-center"><input wire:model="is_active" type="checkbox" class="peer sr-only"><div class="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div></label><span class="text-sm font-medium text-gray-700">Active</span></div>
     </div></div>
 
     {{-- Additional Inventory Access --}}
     <div class="mt-6 rounded-xl bg-white p-6 shadow-sm border border-gray-100">
-        <h3 class="text-base font-semibold text-gray-900 mb-1">Additional Inventory Access</h3>
-        <p class="text-sm text-gray-500 mb-5">Grant this user access to inventory beyond their own department.</p>
+        <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-semibold text-gray-900">Additional Inventory Access</h3>
+                <p class="text-sm text-gray-500 mt-0.5">Grant this user access to inventory beyond their own department.</p>
+            </div>
+            <label class="relative inline-flex cursor-pointer items-center">
+                <input wire:model.live="showAdditionalAccess" type="checkbox" class="peer sr-only">
+                <div class="h-6 w-11 rounded-full bg-gray-200 after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all peer-checked:bg-blue-600 peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+            </label>
+        </div>
 
-        <div class="space-y-5">
+        @if($showAdditionalAccess)
+        <div class="mt-5 space-y-5">
             {{-- View All Inventory Toggle --}}
             <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50/50 p-4">
                 <label class="relative inline-flex cursor-pointer items-center">
@@ -57,6 +66,7 @@
             </div>
             @endif
         </div>
+        @endif
     </div>
     <div class="mt-6 flex justify-end gap-3"><a href="{{ route('users.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50">Cancel</a><button type="submit" class="rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700">Create User</button></div></form>
 </div>
