@@ -16,7 +16,7 @@
 
         {{-- Pagination links --}}
         @if($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator && $paginator->hasPages())
-            <div>{{ $paginator->links() }}</div>
+            <div>{{ $paginator->links('vendor.pagination.custom') }}</div>
         @endif
     </div>
 </div>
