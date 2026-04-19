@@ -24,7 +24,7 @@
                 </tr></thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($adjustments as $adj)
-                    <tr class="relative hover:bg-gray-50/50" x-data="{ showNote: false }" @mouseenter="showNote = true" @mouseleave="showNote = false">
+                    <tr class="hover:bg-gray-50/50" x-data="{ showNote: false }" @mouseenter="showNote = true" @mouseleave="showNote = false">
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->performed_at->format('M d, Y') }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-mono text-gray-500">{{ $adj->adjustment_number }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ $adj->inventoryItem?->item_name }}</td>
@@ -33,15 +33,17 @@
                             <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $inc ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">{{ $adj->action_type->label() }}</span>
                         </td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->performedBy?->name }}</td>
-                        @if($adj->note)
-                        <div x-show="showNote" x-transition.opacity.duration.150ms x-cloak
-                             class="absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-full mt-[-0.5rem] w-80 rounded-lg bg-gray-900 px-4 py-2.5 text-xs leading-relaxed text-white shadow-lg ring-1 ring-gray-900/5">
-                            <span class="block font-semibold text-gray-300 mb-1">Note</span>
-                            {{ $adj->note }}
-                            <div class="absolute left-1/2 top-full -translate-x-1/2 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
-                        </div>
-                        @endif
+                        <td class="relative whitespace-nowrap px-6 py-4 text-sm text-gray-600">
+                            {{ $adj->performedBy?->name }}
+                            @if($adj->note)
+                            <div x-show="showNote" x-transition.opacity.duration.150ms x-cloak
+                                 class="absolute bottom-full right-0 z-50 mb-2 w-72 rounded-lg bg-gray-900 px-4 py-2.5 text-xs leading-relaxed text-white shadow-lg ring-1 ring-gray-900/5">
+                                <span class="block font-semibold text-gray-300 mb-1">Note</span>
+                                {{ $adj->note }}
+                                <div class="absolute top-full right-6 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
+                            </div>
+                            @endif
+                        </td>
                     </tr>
                     @empty
                     <tr><td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">No adjustments found.</td></tr>
