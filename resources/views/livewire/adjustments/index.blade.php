@@ -12,45 +12,51 @@
         </div>
     </div>
     <div class="overflow-hidden rounded-xl bg-white shadow-sm border border-gray-100">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+        <table class="w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50/50"><tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Adj. No.</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Delta</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">By</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Date</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Adj. No.</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Item</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Delta</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">By</th>
                 </tr></thead>
                 <tbody class="divide-y divide-gray-100">
                     @forelse($adjustments as $adj)
-                    <tr class="hover:bg-gray-50/50" x-data="{ showNote: false }" @mouseenter="showNote = true" @mouseleave="showNote = false">
-                        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->performed_at->format('M d, Y') }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-mono text-gray-500">{{ $adj->adjustment_number }}</td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{{ $adj->inventoryItem?->item_name }}</td>
-                        <td class="whitespace-nowrap px-6 py-4">
+                    <tr class="hover:bg-gray-50/50"
+                        x-data="{ showNote: false, pos: { top: 0, left: 0 } }"
+                        @mouseenter="
+                            let rect = $el.getBoundingClientRect();
+                            pos = { top: rect.top - 8, left: rect.left + rect.width / 2 };
+                            showNote = true;
+                        "
+                        @mouseleave="showNote = false">
+                        <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600">{{ $adj->performed_at->format('M d, Y') }}</td>
+                        <td class="whitespace-nowrap px-4 py-4 text-sm font-mono text-gray-500">{{ $adj->adjustment_number }}</td>
+                        <td class="whitespace-nowrap px-4 py-4 text-sm font-medium text-gray-900">{{ $adj->inventoryItem?->item_name }}</td>
+                        <td class="whitespace-nowrap px-4 py-4">
                             @php $inc = $adj->delta_total > 0; @endphp
                             <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium {{ $inc ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700' }}">{{ $adj->action_type->label() }}</span>
                         </td>
-                        <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
-                        <td class="relative whitespace-nowrap px-6 py-4 text-sm text-gray-600">
-                            {{ $adj->performedBy?->name }}
-                            @if($adj->note)
+                        <td class="whitespace-nowrap px-4 py-4 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
+                        <td class="whitespace-nowrap px-4 py-4 text-sm text-gray-600">{{ $adj->performedBy?->name }}</td>
+                        @if($adj->note)
+                        <template x-teleport="body">
                             <div x-show="showNote" x-transition.opacity.duration.150ms x-cloak
-                                 class="absolute bottom-full right-0 z-50 mb-2 w-72 rounded-lg bg-gray-900 px-4 py-2.5 text-xs leading-relaxed text-white shadow-lg ring-1 ring-gray-900/5">
+                                 :style="`position:fixed; top:${pos.top}px; left:${pos.left}px; transform:translate(-50%,-100%); z-index:9999;`"
+                                 class="w-72 rounded-lg bg-gray-900 px-4 py-2.5 text-xs leading-relaxed text-white shadow-lg">
                                 <span class="block font-semibold text-gray-300 mb-1">Note</span>
                                 {{ $adj->note }}
-                                <div class="absolute top-full right-6 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
+                                <div class="absolute left-1/2 top-full -translate-x-1/2 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
                             </div>
-                            @endif
-                        </td>
+                        </template>
+                        @endif
                     </tr>
                     @empty
-                    <tr><td colspan="6" class="px-6 py-12 text-center text-sm text-gray-500">No adjustments found.</td></tr>
+                    <tr><td colspan="6" class="px-4 py-12 text-center text-sm text-gray-500">No adjustments found.</td></tr>
                     @endforelse
                 </tbody>
             </table>
-        </div>
-        @if($adjustments->hasPages())<div class="border-t border-gray-100 px-6 py-4">{{ $adjustments->links() }}</div>@endif
+        @if($adjustments->hasPages())<div class="border-t border-gray-100 px-4 py-4">{{ $adjustments->links() }}</div>@endif
     </div>
 </div>
