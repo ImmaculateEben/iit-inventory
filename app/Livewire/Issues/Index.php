@@ -12,7 +12,7 @@ class Index extends Component
 
     public string $search = '';
     public string $filterType = '';
-    public int $perPage = 10;
+    public string|int $perPage = 10;
 
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingFilterType(): void { $this->resetPage(); }
@@ -30,7 +30,7 @@ class Index extends Component
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
             ->when($this->filterType, fn($q) => $q->where('action_type', $this->filterType))
             ->latest('issued_at')
-            ->paginate($this->perPage);
+            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
 
         return view('livewire.issues.index', compact('issues'))->layout('layouts.app');
     }
