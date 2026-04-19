@@ -18,14 +18,14 @@ class Create extends Component
 
     protected function formStateFields(): array
     {
-        return ['name', 'email', 'department_id', 'selectedRoles', 'is_active', 'can_view_all_inventory', 'accessibleDepartments', 'accessibleCategories'];
+        return ['name', 'email', 'department_id', 'selectedRole', 'is_active', 'can_view_all_inventory', 'accessibleDepartments', 'accessibleCategories'];
     }
 
     public string $name = '';
     public string $email = '';
     public string $password = '';
     public string $department_id = '';
-    public array $selectedRoles = [];
+    public string $selectedRole = '';
     public bool $is_active = true;
     public bool $can_view_all_inventory = false;
     public bool $showAdditionalAccess = false;
@@ -39,7 +39,7 @@ class Create extends Component
             'email' => 'required|email|unique:users,email',
             'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
             'department_id' => 'required|exists:departments,id',
-            'selectedRoles' => 'required|array|min:1',
+            'selectedRole' => 'required|exists:roles,id',
             'can_view_all_inventory' => 'boolean',
             'accessibleDepartments' => 'array',
             'accessibleCategories' => 'array',
@@ -55,7 +55,10 @@ class Create extends Component
         // Prevent non-admin from assigning admin role
         if (!auth()->user()->isAdmin()) {
             $adminRoleId = Role::where('code', 'admin')->value('id');
-            $this->selectedRoles = array_filter($this->selectedRoles, fn($id) => (int) $id !== (int) $adminRoleId);
+            if ((int) $this->selectedRole === (int) $adminRoleId) {
+                $this->addError('selectedRole', 'You cannot assign the admin role.');
+                return;
+            }
         }
 
         $user = User::create([
@@ -66,7 +69,7 @@ class Create extends Component
             'is_active' => $this->is_active,
             'can_view_all_inventory' => auth()->user()->isAdmin() ? $this->can_view_all_inventory : false,
         ]);
-        $user->roles()->sync($this->selectedRoles);
+        $user->roles()->sync([$this->selectedRole]);
 
         if (!$this->can_view_all_inventory) {
             $user->accessibleDepartments()->sync($this->accessibleDepartments);

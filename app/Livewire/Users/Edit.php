@@ -18,7 +18,7 @@ class Edit extends Component
     public string $email = '';
     public string $password = '';
     public string $department_id = '';
-    public array $selectedRoles = [];
+    public string $selectedRole = '';
     public bool $is_active = true;
     public bool $can_view_all_inventory = false;
     public bool $showAdditionalAccess = false;
@@ -36,7 +36,7 @@ class Edit extends Component
 
         $this->fill($user->only(['name', 'email', 'is_active', 'can_view_all_inventory']));
         $this->department_id = (string) $user->department_id;
-        $this->selectedRoles = $user->roles->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        $this->selectedRole = (string) ($user->roles->first()?->id ?? '');
         $this->accessibleDepartments = $user->accessibleDepartments->pluck('id')->map(fn($id) => (string) $id)->toArray();
         $this->accessibleCategories = $user->accessibleCategories->pluck('id')->map(fn($id) => (string) $id)->toArray();
         $this->showAdditionalAccess = $user->can_view_all_inventory || count($this->accessibleDepartments) > 0 || count($this->accessibleCategories) > 0;
@@ -49,7 +49,7 @@ class Edit extends Component
             'email' => 'required|email|unique:users,email,' . $this->user->id,
             'password' => ['nullable', 'string', Password::min(8)->mixedCase()->numbers()->symbols()],
             'department_id' => 'required|exists:departments,id',
-            'selectedRoles' => 'required|array|min:1',
+            'selectedRole' => 'required|exists:roles,id',
             'can_view_all_inventory' => 'boolean',
             'accessibleDepartments' => 'array',
             'accessibleCategories' => 'array',
@@ -70,7 +70,10 @@ class Edit extends Component
         // Prevent non-admin from assigning admin role
         if (!auth()->user()->isAdmin()) {
             $adminRoleId = Role::where('code', 'admin')->value('id');
-            $this->selectedRoles = array_filter($this->selectedRoles, fn($id) => (int) $id !== (int) $adminRoleId);
+            if ((int) $this->selectedRole === (int) $adminRoleId) {
+                $this->addError('selectedRole', 'You cannot assign the admin role.');
+                return;
+            }
         }
 
         $data = [
@@ -82,7 +85,7 @@ class Edit extends Component
         ];
         if ($this->password) $data['password'] = Hash::make($this->password);
         $this->user->update($data);
-        $this->user->roles()->sync($this->selectedRoles);
+        $this->user->roles()->sync([$this->selectedRole]);
 
         if ($this->can_view_all_inventory) {
             $this->user->accessibleDepartments()->detach();
