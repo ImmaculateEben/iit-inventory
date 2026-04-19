@@ -6,6 +6,7 @@ use App\Models\InventoryItem;
 use App\Models\StockAdjustment;
 use App\Support\Audit\AuditLogger;
 use App\Support\RemembersFormState;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Create extends Component
@@ -35,42 +36,46 @@ class Create extends Component
     public function save()
     {
         $this->validate();
-        $item = InventoryItem::findOrFail($this->inventory_item_id);
-        $before = $item->quantity_in_stock;
 
-        $increase = in_array($this->adjustment_type, ['stock_in', 'correction_increase', 'repair_in']);
+        DB::transaction(function () {
+            $item = InventoryItem::lockForUpdate()->findOrFail($this->inventory_item_id);
+            $before = $item->quantity_in_stock;
 
-        if (!$increase && $item->quantity_available < $this->quantity) {
-            $this->addError('quantity', 'Insufficient stock. Available: ' . $item->quantity_available);
-            return;
-        }
+            $increase = in_array($this->adjustment_type, ['stock_in', 'correction_increase', 'repair_in']);
 
-        $deltaTotal = $increase ? $this->quantity : -$this->quantity;
-        $deltaAvailable = $deltaTotal;
+            if (!$increase && $item->quantity_available < $this->quantity) {
+                $this->addError('quantity', 'Insufficient stock. Available: ' . $item->quantity_available);
+                return;
+            }
 
-        $adjustment = StockAdjustment::create([
-            'adjustment_number' => StockAdjustment::generateNumber(),
-            'inventory_item_id' => $this->inventory_item_id,
-            'action_type' => $this->adjustment_type,
-            'delta_total' => $deltaTotal,
-            'delta_available' => $deltaAvailable,
-            'performed_by_user_id' => auth()->id(),
-            'performed_at' => now(),
-            'note' => $this->reason,
-        ]);
+            $deltaTotal = $increase ? $this->quantity : -$this->quantity;
+            $deltaAvailable = $deltaTotal;
 
-        if ($increase) {
-            $item->increment('quantity_in_stock', $this->quantity);
-            $item->increment('quantity_available', $this->quantity);
-        } else {
-            $item->decrement('quantity_in_stock', $this->quantity);
-            $item->decrement('quantity_available', $this->quantity);
-        }
+            $adjustment = StockAdjustment::create([
+                'adjustment_number' => StockAdjustment::generateNumber(),
+                'inventory_item_id' => $this->inventory_item_id,
+                'action_type' => $this->adjustment_type,
+                'delta_total' => $deltaTotal,
+                'delta_available' => $deltaAvailable,
+                'performed_by_user_id' => auth()->id(),
+                'performed_at' => now(),
+                'note' => $this->reason,
+            ]);
 
-        AuditLogger::log('stock_adjusted', StockAdjustment::class, $adjustment->id, ['qty' => $before], ['qty' => $before + $deltaTotal]);
+            if ($increase) {
+                $item->increment('quantity_in_stock', $this->quantity);
+                $item->increment('quantity_available', $this->quantity);
+            } else {
+                $item->decrement('quantity_in_stock', $this->quantity);
+                $item->decrement('quantity_available', $this->quantity);
+            }
+
+            AuditLogger::log('stock_adjusted', StockAdjustment::class, $adjustment->id, ['qty' => $before], ['qty' => $before + $deltaTotal]);
+
+            session()->flash('success', 'Stock adjustment recorded.');
+        });
 
         $this->clearFormState();
-        session()->flash('success', 'Stock adjustment recorded.');
         return $this->redirect(route('adjustments.index'), navigate: true);
     }
 

@@ -216,20 +216,33 @@ class Edit extends Component
         }
 
         // Save ad-hoc extra fields
+        $canManageFields = auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_custom_fields');
         foreach ($this->extraFields as $ef) {
             if (empty($ef['label']) || ($ef['value'] === '' && $ef['value'] === null)) continue;
 
             $fieldKey = \Illuminate\Support\Str::slug($ef['label'], '_');
 
-            $customField = CustomField::firstOrCreate(
-                ['field_key' => $fieldKey],
-                [
-                    'label' => $ef['label'],
-                    'field_type' => $ef['type'],
-                    'entity_scope' => 'inventory_item',
-                    'is_active' => !empty($ef['save_for_future']),
-                ]
-            );
+            if ($canManageFields) {
+                $customField = CustomField::firstOrCreate(
+                    ['field_key' => $fieldKey],
+                    [
+                        'label' => $ef['label'],
+                        'field_type' => $ef['type'],
+                        'entity_scope' => 'inventory_item',
+                        'is_active' => !empty($ef['save_for_future']),
+                    ]
+                );
+            } else {
+                $customField = CustomField::firstOrCreate(
+                    ['field_key' => $fieldKey],
+                    [
+                        'label' => $ef['label'],
+                        'field_type' => $ef['type'],
+                        'entity_scope' => 'inventory_item',
+                        'is_active' => false,
+                    ]
+                );
+            }
 
             $cfv = ['custom_field_id' => $customField->id, 'entity_type' => 'inventory_item', 'entity_id' => $this->inventoryItem->id];
             match ($ef['type']) {

@@ -17,6 +17,11 @@ class Show extends Component
 
     public function updateStatus(string $status): void
     {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->hasPermission('manage_repairs')) {
+            abort(403);
+        }
+
         $old = $this->repairRecord->status;
         $data = ['status' => $status];
 

@@ -233,17 +233,20 @@ class Create extends Component
         }
 
         // Save ad-hoc extra fields
+        $canManageFields = auth()->user()->isAdmin() || auth()->user()->hasPermission('manage_custom_fields');
         foreach ($this->extraFields as $ef) {
             if (empty($ef['label']) || ($ef['value'] === '' && $ef['value'] === null)) continue;
 
             $fieldKey = \Illuminate\Support\Str::slug($ef['label'], '_');
 
-            if ($ef['save_for_future']) {
+            // Only users with manage_custom_fields can create/persist global custom fields
+            if ($canManageFields) {
                 $customField = CustomField::firstOrCreate(
                     ['field_key' => $fieldKey],
-                    ['label' => $ef['label'], 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => true]
+                    ['label' => $ef['label'], 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => (bool) $ef['save_for_future']]
                 );
             } else {
+                // Use existing field if one matches, otherwise create as inactive (one-off)
                 $customField = CustomField::firstOrCreate(
                     ['field_key' => $fieldKey],
                     ['label' => $ef['label'], 'field_type' => $ef['type'], 'entity_scope' => 'inventory_item', 'is_active' => false]

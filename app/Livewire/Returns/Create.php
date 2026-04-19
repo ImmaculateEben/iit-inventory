@@ -10,6 +10,7 @@ use App\Models\IssueRecord;
 use App\Models\ReturnRecord;
 use App\Support\Audit\AuditLogger;
 use App\Support\RemembersFormState;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Create extends Component
@@ -75,40 +76,50 @@ class Create extends Component
             return;
         }
 
-        $return = ReturnRecord::create([
-            'issue_record_id' => $issue->id,
-            'inventory_item_id' => $issue->inventory_item_id,
-            'asset_unit_id' => $issue->asset_unit_id,
-            'department_id' => $issue->department_id,
-            'staff_directory_id' => $issue->staff_directory_id,
-            'staff_name_snapshot' => $issue->staff_name_snapshot,
-            'returned_quantity' => $this->returned_quantity,
-            'return_condition' => $this->return_condition,
-            'received_by_user_id' => auth()->id(),
-            'returned_at' => now(),
-            'note' => $this->note ?: null,
-        ]);
+        DB::transaction(function () use ($issue) {
+            // Re-check under lock
+            $issue->lockForUpdate();
+            $issue->refresh();
+            $outstanding = $issue->outstandingQuantity();
 
-        // Update issue record returned_quantity
-        $issue->increment('returned_quantity', $this->returned_quantity);
+            if ($this->returned_quantity > $outstanding) {
+                $this->addError('returned_quantity', "Cannot return more than outstanding quantity ($outstanding).");
+                return;
+            }
 
-        // Update inventory item quantities
-        $item = InventoryItem::findOrFail($issue->inventory_item_id);
-        $item->increment('quantity_available', $this->returned_quantity);
-        $item->decrement('quantity_issued', $this->returned_quantity);
+            $return = ReturnRecord::create([
+                'issue_record_id' => $issue->id,
+                'inventory_item_id' => $issue->inventory_item_id,
+                'asset_unit_id' => $issue->asset_unit_id,
+                'department_id' => $issue->department_id,
+                'staff_directory_id' => $issue->staff_directory_id,
+                'staff_name_snapshot' => $issue->staff_name_snapshot,
+                'returned_quantity' => $this->returned_quantity,
+                'return_condition' => $this->return_condition,
+                'received_by_user_id' => auth()->id(),
+                'returned_at' => now(),
+                'note' => $this->note ?: null,
+            ]);
 
-        // If this was an assigned unit and fully returned, set it back to available
-        if ($issue->asset_unit_id && $issue->fresh()->outstandingQuantity() <= 0) {
-            AssetUnit::where('id', $issue->asset_unit_id)
-                ->update(['unit_status' => UnitStatus::Available, 'assigned_staff_name_snapshot' => null]);
-        }
+            $issue->increment('returned_quantity', $this->returned_quantity);
 
-        AuditLogger::log('item_returned', ReturnRecord::class, $return->id, null, [
-            'item' => $item->item_name, 'qty' => $this->returned_quantity,
-        ]);
+            $item = InventoryItem::lockForUpdate()->findOrFail($issue->inventory_item_id);
+            $item->increment('quantity_available', $this->returned_quantity);
+            $item->decrement('quantity_issued', $this->returned_quantity);
+
+            if ($issue->asset_unit_id && $issue->fresh()->outstandingQuantity() <= 0) {
+                AssetUnit::where('id', $issue->asset_unit_id)
+                    ->update(['unit_status' => UnitStatus::Available, 'assigned_staff_name_snapshot' => null]);
+            }
+
+            AuditLogger::log('item_returned', ReturnRecord::class, $return->id, null, [
+                'item' => $item->item_name, 'qty' => $this->returned_quantity,
+            ]);
+
+            session()->flash('success', 'Return recorded successfully.');
+        });
 
         $this->clearFormState();
-        session()->flash('success', 'Return recorded successfully.');
         return $this->redirect(route('returns.index'), navigate: true);
     }
 

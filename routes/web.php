@@ -41,7 +41,7 @@ Route::middleware('guest')->group(function () {
 // Authenticated routes
 Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    Route::get('/', DashboardIndex::class)->name('dashboard');
+    Route::get('/', DashboardIndex::class)->name('dashboard')->middleware('permission:view_dashboard');
 
     // Inventory
     Route::get('/inventory', InventoryIndex::class)->name('inventory.index');
@@ -58,10 +58,10 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/returns/create', ReturnsCreate::class)->name('returns.create')->middleware('permission:receive_returns');
 
     // Repairs
-    Route::get('/repairs', RepairsIndex::class)->name('repairs.index');
+    Route::get('/repairs', RepairsIndex::class)->name('repairs.index')->middleware('permission:manage_repairs');
     Route::get('/repairs/create', RepairsCreate::class)->name('repairs.create')->middleware('permission:manage_repairs');
-    Route::get('/repairs/{repairRecord}', RepairsShow::class)->name('repairs.show');
-    Route::get('/repairs/{repairRecord}/edit', RepairsEdit::class)->name('repairs.edit');
+    Route::get('/repairs/{repairRecord}', RepairsShow::class)->name('repairs.show')->middleware('permission:manage_repairs');
+    Route::get('/repairs/{repairRecord}/edit', RepairsEdit::class)->name('repairs.edit')->middleware('permission:manage_repairs');
 
     // Stock Adjustments
     Route::get('/adjustments', AdjustmentsIndex::class)->name('adjustments.index')->middleware('permission:adjust_stock');

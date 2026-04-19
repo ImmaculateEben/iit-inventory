@@ -8,6 +8,7 @@ use App\Models\InventoryItem;
 use App\Models\IssueRecord;
 use App\Support\Audit\AuditLogger;
 use App\Support\RemembersFormState;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Create extends Component
@@ -136,65 +137,73 @@ class Create extends Component
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
 
-        if ($this->action_type === 'assign') {
-            // Assign an individual asset unit
-            $unit = AssetUnit::where('id', $this->asset_unit_id)
-                ->where('inventory_item_id', $item->id)
-                ->where('unit_status', 'available')
-                ->firstOrFail();
+        // Use the item's actual department_id to prevent IDOR
+        $departmentId = $item->department_id;
 
-            $issue = IssueRecord::create([
-                'issue_number' => IssueRecord::generateNumber(),
-                'action_type' => 'assign',
-                'inventory_item_id' => $item->id,
-                'department_id' => $this->department_id,
-                'asset_unit_id' => $unit->id,
-                'staff_name_snapshot' => $this->staff_name,
-                'quantity' => 1,
-                'issued_by_user_id' => auth()->id(),
-                'issued_at' => now(),
-                'note' => $this->note ?: null,
-            ]);
+        DB::transaction(function () use ($item, $departmentId) {
+            if ($this->action_type === 'assign') {
+                $unit = AssetUnit::where('id', $this->asset_unit_id)
+                    ->where('inventory_item_id', $item->id)
+                    ->where('unit_status', 'available')
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-            $unit->update([
-                'unit_status' => UnitStatus::Issued,
-                'assigned_staff_name_snapshot' => $this->staff_name,
-            ]);
+                $issue = IssueRecord::create([
+                    'issue_number' => IssueRecord::generateNumber(),
+                    'action_type' => 'assign',
+                    'inventory_item_id' => $item->id,
+                    'department_id' => $departmentId,
+                    'asset_unit_id' => $unit->id,
+                    'staff_name_snapshot' => $this->staff_name,
+                    'quantity' => 1,
+                    'issued_by_user_id' => auth()->id(),
+                    'issued_at' => now(),
+                    'note' => $this->note ?: null,
+                ]);
 
-            AuditLogger::log('item_assigned', IssueRecord::class, $issue->id, null, [
-                'item' => $item->item_name, 'unit' => $unit->asset_tag ?? $unit->serial_number, 'to' => $this->staff_name,
-            ]);
+                $unit->update([
+                    'unit_status' => UnitStatus::Issued,
+                    'assigned_staff_name_snapshot' => $this->staff_name,
+                ]);
 
-            session()->flash('success', 'Item assigned successfully.');
-        } else {
-            // Issue quantity-based
-            if ($item->quantity_available < $this->quantity) {
-                $this->addError('quantity', 'Not enough stock. Available: ' . $item->quantity_available);
-                return;
+                AuditLogger::log('item_assigned', IssueRecord::class, $issue->id, null, [
+                    'item' => $item->item_name, 'unit' => $unit->asset_tag ?? $unit->serial_number, 'to' => $this->staff_name,
+                ]);
+
+                session()->flash('success', 'Item assigned successfully.');
+            } else {
+                // Re-read with lock to prevent race condition
+                $item->lockForUpdate()->first();
+                $item->refresh();
+
+                if ($item->quantity_available < $this->quantity) {
+                    $this->addError('quantity', 'Not enough stock. Available: ' . $item->quantity_available);
+                    return;
+                }
+
+                $issue = IssueRecord::create([
+                    'issue_number' => IssueRecord::generateNumber(),
+                    'action_type' => 'issue',
+                    'inventory_item_id' => $item->id,
+                    'department_id' => $departmentId,
+                    'staff_name_snapshot' => $this->staff_name,
+                    'quantity' => $this->quantity,
+                    'asset_unit_id' => null,
+                    'issued_by_user_id' => auth()->id(),
+                    'issued_at' => now(),
+                    'note' => $this->note ?: null,
+                ]);
+
+                $item->decrement('quantity_available', $this->quantity);
+                $item->increment('quantity_issued', $this->quantity);
+
+                AuditLogger::log('item_issued', IssueRecord::class, $issue->id, null, [
+                    'item' => $item->item_name, 'qty' => $this->quantity, 'to' => $this->staff_name,
+                ]);
+
+                session()->flash('success', 'Item issued successfully.');
             }
-
-            $issue = IssueRecord::create([
-                'issue_number' => IssueRecord::generateNumber(),
-                'action_type' => 'issue',
-                'inventory_item_id' => $item->id,
-                'department_id' => $this->department_id,
-                'staff_name_snapshot' => $this->staff_name,
-                'quantity' => $this->quantity,
-                'asset_unit_id' => null,
-                'issued_by_user_id' => auth()->id(),
-                'issued_at' => now(),
-                'note' => $this->note ?: null,
-            ]);
-
-            $item->decrement('quantity_available', $this->quantity);
-            $item->increment('quantity_issued', $this->quantity);
-
-            AuditLogger::log('item_issued', IssueRecord::class, $issue->id, null, [
-                'item' => $item->item_name, 'qty' => $this->quantity, 'to' => $this->staff_name,
-            ]);
-
-            session()->flash('success', 'Item issued successfully.');
-        }
+        });
 
         $this->clearFormState();
         return $this->redirect(route('issues.index'), navigate: true);

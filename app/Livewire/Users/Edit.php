@@ -50,6 +50,13 @@ class Edit extends Component
     public function save()
     {
         $this->validate();
+
+        // Prevent non-admin from assigning admin role
+        if (!auth()->user()->isAdmin()) {
+            $adminRoleId = Role::where('code', 'admin')->value('id');
+            $this->selectedRoles = array_filter($this->selectedRoles, fn($id) => (int) $id !== (int) $adminRoleId);
+        }
+
         $data = [
             'name' => $this->name,
             'email' => $this->email,
@@ -78,7 +85,7 @@ class Edit extends Component
     {
         return view('livewire.users.edit', [
             'departments' => Department::orderBy('name')->get(),
-            'roles' => Role::orderBy('name')->get(),
+            'roles' => Role::when(!auth()->user()->isAdmin(), fn($q) => $q->where('code', '!=', 'admin'))->orderBy('name')->get(),
             'allCategories' => Category::orderBy('name')->get(),
         ])->layout('layouts.app');
     }
