@@ -43,11 +43,10 @@
                         @if($adj->note)
                         <template x-teleport="body">
                             <div x-show="showNote" x-transition.opacity.duration.150ms x-cloak
-                                 :style="`position:fixed; top:${pos.top}px; left:${pos.left}px; transform:translate(-50%,-100%); z-index:9999;`"
-                                 class="w-72 rounded-lg bg-gray-900 px-4 py-2.5 text-xs leading-relaxed text-white shadow-lg">
-                                <span class="block font-semibold text-gray-300 mb-1">Note</span>
+                                 :style="`position:fixed; top:${pos.top}px; left:${pos.left}px; transform:translate(-50%,-100%); z-index:9999; width:18rem; border-radius:0.5rem; background:#111827; padding:0.625rem 1rem; font-size:0.75rem; line-height:1.625; color:#fff; box-shadow:0 10px 15px -3px rgba(0,0,0,.3);`">
+                                <span style="display:block; font-weight:600; color:#9ca3af; margin-bottom:0.25rem;">Note</span>
                                 {{ $adj->note }}
-                                <div class="absolute left-1/2 top-full -translate-x-1/2 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
+                                <div style="position:absolute; left:50%; top:100%; transform:translateX(-50%); width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #111827;"></div>
                             </div>
                         </template>
                         @endif
