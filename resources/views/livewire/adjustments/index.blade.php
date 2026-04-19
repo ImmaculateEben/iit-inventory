@@ -35,7 +35,7 @@
                         </td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
                         <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-600">{{ $adj->performedBy?->name }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">{{ $adj->note }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title="{{ $adj->note }}">{{ $adj->note }}</td>
                     </tr>
                     @empty
                     <tr><td colspan="7" class="px-6 py-12 text-center text-sm text-gray-500">No adjustments found.</td></tr>
