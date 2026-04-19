@@ -5,6 +5,7 @@ namespace App\Livewire\Repairs;
 use App\Models\InventoryItem;
 use App\Models\RepairRecord;
 use App\Support\Audit\AuditLogger;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Edit extends Component
@@ -101,19 +102,44 @@ class Edit extends Component
 
         $item = InventoryItem::findOrFail($this->inventory_item_id);
 
-        $this->repairRecord->forceFill([
-            'action_type' => $this->action_type,
-            'inventory_item_id' => $this->inventory_item_id,
-            'department_id' => $item->department_id,
-            'component_repaired' => $this->component_repaired,
-            'repair_description' => $this->repair_description,
-            'problem_description' => $this->repair_description,
-            'repair_date' => $this->repair_date,
-            'status' => $this->status,
-            'updated_by_user_id' => auth()->id(),
-        ])->save();
+        DB::transaction(function () use ($item) {
+            $oldStatus = $this->repairRecord->status->value ?? $this->repairRecord->status;
+            $newStatus = $this->status;
 
-        AuditLogger::log('repair_updated', RepairRecord::class, $this->repairRecord->id);
+            $this->repairRecord->forceFill([
+                'action_type' => $this->action_type,
+                'inventory_item_id' => $this->inventory_item_id,
+                'department_id' => $item->department_id,
+                'component_repaired' => $this->component_repaired,
+                'repair_description' => $this->repair_description,
+                'problem_description' => $this->repair_description,
+                'repair_date' => $this->repair_date,
+                'status' => $this->status,
+                'updated_by_user_id' => auth()->id(),
+            ])->save();
+
+            // Track quantity_under_repair based on status transitions
+            $underRepairStates = ['sent_for_repair', 'in_repair'];
+            $wasUnderRepair = in_array($oldStatus, $underRepairStates);
+            $isUnderRepair = in_array($newStatus, $underRepairStates);
+
+            if (!$wasUnderRepair && $isUnderRepair) {
+                // Entering repair: track under repair (don't reduce availability)
+                $item->increment('quantity_under_repair');
+            } elseif ($wasUnderRepair && !$isUnderRepair) {
+                // Leaving repair
+                $item->decrement('quantity_under_repair');
+
+                // Not repairable = permanent loss: reduce availability
+                if ($newStatus === 'not_repairable') {
+                    $item->decrement('quantity_available');
+                    $item->decrement('quantity_in_stock');
+                    $item->increment('quantity_damaged');
+                }
+            }
+
+            AuditLogger::log('repair_updated', RepairRecord::class, $this->repairRecord->id);
+        });
 
         session()->flash('success', ucfirst($this->action_type) . ' record updated.');
         return $this->redirect(route('repairs.show', $this->repairRecord), navigate: true);

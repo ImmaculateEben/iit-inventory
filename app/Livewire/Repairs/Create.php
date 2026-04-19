@@ -6,6 +6,7 @@ use App\Models\InventoryItem;
 use App\Models\RepairRecord;
 use App\Support\Audit\AuditLogger;
 use App\Support\RemembersFormState;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Create extends Component
@@ -83,21 +84,35 @@ class Create extends Component
         // Enforce department/category access boundary
         abort_unless(auth()->user()->canAccessItem($item), 403, 'You do not have access to this item.');
 
-        $repair = RepairRecord::forceCreate([
-            'repair_number' => RepairRecord::generateNumber(),
-            'action_type' => $this->action_type,
-            'inventory_item_id' => $this->inventory_item_id,
-            'department_id' => $item->department_id,
-            'component_repaired' => $this->component_repaired,
-            'repair_description' => $this->repair_description,
-            'problem_description' => $this->repair_description,
-            'repair_date' => $this->repair_date,
-            'date_reported' => now(),
-            'status' => $this->status,
-            'created_by_user_id' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($item) {
+            $repair = RepairRecord::forceCreate([
+                'repair_number' => RepairRecord::generateNumber(),
+                'action_type' => $this->action_type,
+                'inventory_item_id' => $this->inventory_item_id,
+                'department_id' => $item->department_id,
+                'component_repaired' => $this->component_repaired,
+                'repair_description' => $this->repair_description,
+                'problem_description' => $this->repair_description,
+                'repair_date' => $this->repair_date,
+                'date_reported' => now(),
+                'status' => $this->status,
+                'created_by_user_id' => auth()->id(),
+            ]);
 
-        AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
+            // Track quantity_under_repair when item is sent out for repair
+            if (in_array($this->status, ['sent_for_repair', 'in_repair'])) {
+                $item->increment('quantity_under_repair');
+            }
+
+            // Not repairable = permanent loss: reduce availability
+            if ($this->status === 'not_repairable') {
+                $item->decrement('quantity_available');
+                $item->decrement('quantity_in_stock');
+                $item->increment('quantity_damaged');
+            }
+
+            AuditLogger::log('repair_created', RepairRecord::class, $repair->id);
+        });
 
         $this->clearFormState();
         session()->flash('success', ucfirst($this->action_type) . ' record created.');

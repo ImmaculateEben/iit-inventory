@@ -55,6 +55,26 @@ class DashboardService
         $individualUnderRepair = $unitRepairQuery->count();
         $itemsUnderRepair = (int) $quantityUnderRepair + $individualUnderRepair;
 
+        // Available items: quantity-tracked with quantity_available > 0, plus individual-tracked units with status 'available'
+        $availableQuantityItems = (clone $itemQuery)->quantityTracked()->where('quantity_available', '>', 0)->count();
+        $availableUnitQuery = AssetUnit::active()->where('unit_status', 'available');
+        if ($deptIds !== null || $catIds !== null) {
+            $availableUnitQuery->whereHas('inventoryItem', function ($q) use ($deptIds, $catIds) {
+                $this->applyAccessScope($q, $deptIds, $catIds);
+            });
+        }
+        $totalAvailableUnits = $availableUnitQuery->count();
+        $totalAvailableQty = (int) ((clone $itemQuery)->quantityTracked()->sum('quantity_available') ?? 0) + $totalAvailableUnits;
+
+        // Out of stock: quantity-tracked items with quantity_available = 0
+        $outOfStockItems = (clone $itemQuery)->quantityTracked()->where('quantity_available', 0)->count();
+
+        // Individual-tracked items with zero available units
+        $individualItemsOutOfStock = (clone $itemQuery)->individualTracked()
+            ->whereDoesntHave('assetUnits', function ($q) {
+                $q->whereNull('archived_at')->where('unit_status', 'available');
+            })->count();
+
         return [
             'total_items' => $totalItems,
             'consumables_count' => $consumablesCount,
@@ -62,6 +82,8 @@ class DashboardService
             'low_stock_items' => $lowStockItems,
             'issued_items' => $issuedItems,
             'items_under_repair' => $itemsUnderRepair,
+            'total_available_qty' => $totalAvailableQty,
+            'out_of_stock_items' => $outOfStockItems + $individualItemsOutOfStock,
         ];
     }
 

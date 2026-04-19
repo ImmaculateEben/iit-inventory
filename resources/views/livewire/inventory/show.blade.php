@@ -206,11 +206,17 @@
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Type</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Delta</th>
                             <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">By</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">Note</th>
                         </tr></thead>
                         <tbody class="divide-y divide-gray-100">
                             @forelse($inventoryItem->stockAdjustments as $adj)
-                            <tr class="hover:bg-gray-50/50">
+                            <tr class="hover:bg-gray-50/50"
+                                x-data="{ showNote: false, pos: { top: 0, left: 0 } }"
+                                @mouseenter="
+                                    let rect = $el.getBoundingClientRect();
+                                    pos = { top: rect.top - 8, left: rect.left + rect.width / 2 };
+                                    showNote = true;
+                                "
+                                @mouseleave="showNote = false">
                                 <td class="whitespace-nowrap px-6 py-3 text-sm text-gray-600">{{ $adj->performed_at->format('M d, Y') }}</td>
                                 <td class="whitespace-nowrap px-6 py-3">
                                     @php $inc = $adj->delta_total > 0; @endphp
@@ -218,21 +224,19 @@
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-3 text-sm font-semibold {{ $inc ? 'text-green-600' : 'text-red-600' }}">{{ $inc ? '+' : '' }}{{ $adj->delta_total }}</td>
                                 <td class="whitespace-nowrap px-6 py-3 text-sm text-gray-600">{{ $adj->performedBy?->name ?? '—' }}</td>
-                                <td class="px-6 py-3 text-sm text-gray-500" x-data="{ open: false }">
-                                    <div class="relative max-w-[10rem]">
-                                        <span class="block truncate cursor-default" @mouseenter="open = true" @mouseleave="open = false">{{ $adj->note ?? '—' }}</span>
-                                        @if($adj->note)
-                                        <div x-show="open" x-transition.opacity.duration.150ms x-cloak
-                                             class="absolute bottom-full left-0 z-50 mb-2 w-72 rounded-lg bg-gray-900 px-3 py-2 text-xs leading-relaxed text-white shadow-lg ring-1 ring-gray-900/5">
-                                            {{ $adj->note }}
-                                            <div class="absolute top-full left-4 h-0 w-0 border-x-[6px] border-t-[6px] border-x-transparent border-t-gray-900"></div>
-                                        </div>
-                                        @endif
+                                @if($adj->note)
+                                <template x-teleport="body">
+                                    <div x-show="showNote" x-transition.opacity.duration.150ms x-cloak
+                                         :style="`position:fixed; top:${pos.top}px; left:${pos.left}px; transform:translate(-50%,-100%); z-index:9999; width:18rem; border-radius:0.5rem; background:#111827; padding:0.625rem 1rem; font-size:0.75rem; line-height:1.625; color:#fff; box-shadow:0 10px 15px -3px rgba(0,0,0,.3);`">
+                                        <span style="display:block; font-weight:600; color:#9ca3af; margin-bottom:0.25rem;">Note</span>
+                                        {{ $adj->note }}
+                                        <div style="position:absolute; left:50%; top:100%; transform:translateX(-50%); width:0; height:0; border-left:6px solid transparent; border-right:6px solid transparent; border-top:6px solid #111827;"></div>
                                     </div>
-                                </td>
+                                </template>
+                                @endif
                             </tr>
                             @empty
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">No stock adjustments yet.</td></tr>
+                            <tr><td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400">No stock adjustments yet.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

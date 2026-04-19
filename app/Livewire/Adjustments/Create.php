@@ -27,7 +27,7 @@ class Create extends Component
     {
         return [
             'inventory_item_id' => 'required|exists:inventory_items,id',
-            'adjustment_type' => 'required|in:stock_in,stock_out,correction_increase,correction_decrease,damage,loss,disposal,repair_out,repair_in',
+            'adjustment_type' => 'required|in:stock_in,stock_out,correction_increase,correction_decrease,damage,loss,disposal',
             'quantity' => 'required|integer|min:1',
             'reason' => 'required|string|max:500',
         ];
@@ -45,7 +45,7 @@ class Create extends Component
 
             $before = $item->quantity_in_stock;
 
-            $increase = in_array($this->adjustment_type, ['stock_in', 'correction_increase', 'repair_in']);
+            $increase = in_array($this->adjustment_type, ['stock_in', 'correction_increase']);
 
             if (!$increase && $item->quantity_available < $this->quantity) {
                 $this->addError('quantity', 'Insufficient stock. Available: ' . $item->quantity_available);

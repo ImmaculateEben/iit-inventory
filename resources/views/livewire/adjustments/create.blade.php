@@ -6,7 +6,6 @@
             <option value="stock_in">Stock In</option><option value="stock_out">Stock Out</option>
             <option value="correction_increase">Correction (Increase)</option><option value="correction_decrease">Correction (Decrease)</option>
             <option value="damage">Damage</option><option value="loss">Loss</option><option value="disposal">Disposal</option>
-            <option value="repair_out">Repair Out</option><option value="repair_in">Repair In</option>
         </select></div>
         <div><label class="block text-sm font-medium text-gray-700">Quantity <span class="text-red-500">*</span></label><input wire:model="quantity" type="number" min="1" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">@error('quantity')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>
         <div class="sm:col-span-2"><label class="block text-sm font-medium text-gray-700">Reason <span class="text-red-500">*</span></label><textarea wire:model="reason" rows="2" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>@error('reason')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror</div>

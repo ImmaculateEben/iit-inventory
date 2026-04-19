@@ -6,7 +6,7 @@
     </div>
 
     {{-- Metric Cards Grid --}}
-    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {{-- Total Items --}}
         <div class="relative overflow-hidden rounded-xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
             <div class="flex items-center">
@@ -102,6 +102,38 @@
             </div>
             <div class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-orange-50/50"></div>
         </div>
+
+        {{-- Available Stock --}}
+        <div class="relative overflow-hidden rounded-xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-green-50">
+                    <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Available Stock</p>
+                    <p class="text-2xl font-bold text-green-600">{{ number_format($metrics['total_available_qty'] ?? 0) }}</p>
+                </div>
+            </div>
+            <div class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full bg-green-50/50"></div>
+        </div>
+
+        {{-- Out of Stock --}}
+        <div class="relative overflow-hidden rounded-xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl {{ ($metrics['out_of_stock_items'] ?? 0) > 0 ? 'bg-red-50' : 'bg-gray-50' }}">
+                    <svg class="h-6 w-6 {{ ($metrics['out_of_stock_items'] ?? 0) > 0 ? 'text-red-600' : 'text-gray-400' }}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Out of Stock</p>
+                    <p class="text-2xl font-bold {{ ($metrics['out_of_stock_items'] ?? 0) > 0 ? 'text-red-600' : 'text-gray-900' }}">{{ number_format($metrics['out_of_stock_items'] ?? 0) }}</p>
+                </div>
+            </div>
+            <div class="absolute right-0 top-0 -mr-4 -mt-4 h-24 w-24 rounded-full {{ ($metrics['out_of_stock_items'] ?? 0) > 0 ? 'bg-red-50/50' : 'bg-gray-50/50' }}"></div>
+        </div>
     </div>
 
     {{-- Low Stock Alerts --}}
@@ -186,7 +218,7 @@
                 </div>
                 <span class="mt-2 text-xs font-medium text-gray-700">Add Item</span>
             </a>
-            <a href="{{ route('requests.index') }}" class="group flex flex-col items-center rounded-xl border border-gray-200 bg-white p-4 text-center shadow-sm hover:border-blue-300 hover:shadow-md transition">
+            <a href="{{ route('issues.index') }}" class="group flex flex-col items-center rounded-xl border border-gray-200 bg-white p-4 text-center shadow-sm hover:border-blue-300 hover:shadow-md transition">
                 <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100 transition-colors">
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
                 </div>
