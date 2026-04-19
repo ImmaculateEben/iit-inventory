@@ -67,7 +67,7 @@
                                     @if($item->item_code)<span class="font-medium text-gray-900">{{ $item->item_code }}</span> <span class="text-gray-400">—</span> @endif
                                     <span class="text-gray-700">{{ $item->item_name }}</span>
                                     @if($action_type === 'assign')
-                                        <span class="ml-1 text-xs text-emerald-600">({{ $item->assetUnits->where('unit_status.value', 'available')->count() ?? 0 }} units)</span>
+                                        <span class="ml-1 text-xs text-emerald-600">({{ $item->available_units_count ?? 0 }} units)</span>
                                     @else
                                         <span class="ml-1 text-xs text-emerald-600">({{ $item->quantity_available }} avail.)</span>
                                     @endif
@@ -84,6 +84,8 @@
 
                     @if($action_type === 'issue' && $maxQuantity > 0)
                         <p class="mt-1 text-xs text-gray-500">Available stock: <strong>{{ $maxQuantity }}</strong></p>
+                    @elseif($action_type === 'assign' && $maxQuantity > 0)
+                        <p class="mt-1 text-xs text-gray-500">Available units: <strong>{{ $maxQuantity }}</strong></p>
                     @endif
                 </div>
 
@@ -117,20 +119,28 @@
 
                 {{-- Asset Unit Selection (Assign mode only) --}}
                 @if($action_type === 'assign' && $inventory_item_id)
-                <div>
-                    <label for="asset_unit_id" class="block text-sm font-medium text-gray-700">Asset Unit <span class="text-red-500">*</span></label>
-                    <select wire:model="asset_unit_id" id="asset_unit_id" class="mt-1 w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                        <option value="">— Select Unit —</option>
-                        @foreach($availableUnits as $unit)
-                            <option value="{{ $unit->id }}">
-                                {{ $unit->asset_tag ?: 'No Tag' }}
-                                @if($unit->serial_number) — S/N: {{ $unit->serial_number }} @endif
-                                ({{ ucfirst($unit->condition_status->value) }})
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('asset_unit_id') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                    <p class="mt-1 text-xs text-gray-500">{{ $availableUnits->count() }} unit{{ $availableUnits->count() !== 1 ? 's' : '' }} available for assignment.</p>
+                <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700">Select Units to Assign <span class="text-red-500">*</span></label>
+                    <p class="mt-1 text-xs text-gray-500">{{ $availableUnits->count() }} unit{{ $availableUnits->count() !== 1 ? 's' : '' }} available. Check the ones you want to assign.</p>
+                    <div class="mt-2 max-h-60 overflow-y-auto rounded-lg border border-gray-200 divide-y divide-gray-100">
+                        @forelse($availableUnits as $unit)
+                            <label class="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-blue-50 transition">
+                                <input type="checkbox" wire:model.live="asset_unit_ids" value="{{ $unit->id }}"
+                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500">
+                                <div class="min-w-0 flex-1 text-sm">
+                                    <span class="font-medium text-gray-900">{{ $unit->asset_tag ?: 'No Tag' }}</span>
+                                    @if($unit->serial_number) <span class="text-gray-400">— S/N: {{ $unit->serial_number }}</span> @endif
+                                    <span class="ml-1 text-xs text-gray-400">({{ ucfirst($unit->condition_status->value) }})</span>
+                                </div>
+                            </label>
+                        @empty
+                            <div class="px-4 py-3 text-sm text-gray-500">No available units.</div>
+                        @endforelse
+                    </div>
+                    @if(count($asset_unit_ids) > 0)
+                        <p class="mt-1.5 text-xs font-medium text-blue-600">{{ count($asset_unit_ids) }} unit{{ count($asset_unit_ids) !== 1 ? 's' : '' }} selected for assignment</p>
+                    @endif
+                    @error('asset_unit_ids') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 @endif
 

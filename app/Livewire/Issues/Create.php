@@ -17,7 +17,7 @@ class Create extends Component
 
     protected function formStateFields(): array
     {
-        return ['action_type', 'inventory_item_id', 'department_id', 'staff_name', 'quantity', 'asset_unit_id', 'note'];
+        return ['action_type', 'inventory_item_id', 'department_id', 'staff_name', 'quantity', 'asset_unit_ids', 'note'];
     }
 
     // Action type toggle
@@ -27,7 +27,7 @@ class Create extends Component
     public string $department_id = '';
     public string $staff_name = '';
     public int $quantity = 1;
-    public ?string $asset_unit_id = null;
+    public array $asset_unit_ids = [];
     public string $note = '';
 
     // Search / UI state
@@ -50,7 +50,8 @@ class Create extends Component
         ];
 
         if ($this->action_type === 'assign') {
-            $rules['asset_unit_id'] = 'required|exists:asset_units,id';
+            $rules['asset_unit_ids'] = 'required|array|min:1';
+            $rules['asset_unit_ids.*'] = 'exists:asset_units,id';
         } else {
             $rules['quantity'] = 'required|integer|min:1';
         }
@@ -60,7 +61,8 @@ class Create extends Component
 
     protected $messages = [
         'staff_name.required' => 'Enter the name of the person receiving the item.',
-        'asset_unit_id.required' => 'Please select an asset unit to assign.',
+        'asset_unit_ids.required' => 'Please select at least one asset unit to assign.',
+        'asset_unit_ids.min' => 'Please select at least one asset unit to assign.',
     ];
 
     public function updatedActionType(): void
@@ -87,6 +89,7 @@ class Create extends Component
             $label = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name . ' (' . $item->quantity_available . ' available)';
         } else {
             $availableUnits = $item->assetUnits()->where('unit_status', 'available')->count();
+            $this->maxQuantity = $availableUnits;
             $label = ($item->item_code ? $item->item_code . ' — ' : '') . $item->item_name . ' (' . $availableUnits . ' units available)';
         }
 
@@ -94,7 +97,7 @@ class Create extends Component
         $this->itemSearch = $label;
         $this->showItemDropdown = false;
         $this->quantity = 1;
-        $this->asset_unit_id = null;
+        $this->asset_unit_ids = [];
     }
 
     public function clearItem(): void
@@ -105,7 +108,7 @@ class Create extends Component
         $this->selectedTrackingMethod = '';
         $this->maxQuantity = 0;
         $this->quantity = 1;
-        $this->asset_unit_id = null;
+        $this->asset_unit_ids = [];
     }
 
     public function updatedStaffSearch(): void
@@ -147,35 +150,43 @@ class Create extends Component
 
         DB::transaction(function () use ($item, $departmentId, &$saved) {
             if ($this->action_type === 'assign') {
-                $unit = AssetUnit::where('id', $this->asset_unit_id)
+                $units = AssetUnit::whereIn('id', $this->asset_unit_ids)
                     ->where('inventory_item_id', $item->id)
                     ->where('unit_status', 'available')
                     ->lockForUpdate()
-                    ->firstOrFail();
+                    ->get();
 
-                $issue = IssueRecord::forceCreate([
-                    'issue_number' => IssueRecord::generateNumber(),
-                    'action_type' => 'assign',
-                    'inventory_item_id' => $item->id,
-                    'department_id' => $departmentId,
-                    'asset_unit_id' => $unit->id,
-                    'staff_name_snapshot' => $this->staff_name,
-                    'quantity' => 1,
-                    'issued_by_user_id' => auth()->id(),
-                    'issued_at' => now(),
-                    'note' => $this->note ?: null,
-                ]);
+                if ($units->count() !== count($this->asset_unit_ids)) {
+                    $this->addError('asset_unit_ids', 'Some selected units are no longer available. Please refresh and try again.');
+                    return;
+                }
 
-                $unit->update([
-                    'unit_status' => UnitStatus::Issued,
-                    'assigned_staff_name_snapshot' => $this->staff_name,
-                ]);
+                foreach ($units as $unit) {
+                    $issue = IssueRecord::forceCreate([
+                        'issue_number' => IssueRecord::generateNumber(),
+                        'action_type' => 'assign',
+                        'inventory_item_id' => $item->id,
+                        'department_id' => $departmentId,
+                        'asset_unit_id' => $unit->id,
+                        'staff_name_snapshot' => $this->staff_name,
+                        'quantity' => 1,
+                        'issued_by_user_id' => auth()->id(),
+                        'issued_at' => now(),
+                        'note' => $this->note ?: null,
+                    ]);
 
-                AuditLogger::log('item_assigned', IssueRecord::class, $issue->id, null, [
-                    'item' => $item->item_name, 'unit' => $unit->asset_tag ?? $unit->serial_number, 'to' => $this->staff_name,
-                ]);
+                    $unit->update([
+                        'unit_status' => UnitStatus::Issued,
+                        'assigned_staff_name_snapshot' => $this->staff_name,
+                    ]);
 
-                session()->flash('success', 'Item assigned successfully.');
+                    AuditLogger::log('item_assigned', IssueRecord::class, $issue->id, null, [
+                        'item' => $item->item_name, 'unit' => $unit->asset_tag ?? $unit->serial_number, 'to' => $this->staff_name,
+                    ]);
+                }
+
+                $count = $units->count();
+                session()->flash('success', $count . ' unit' . ($count > 1 ? 's' : '') . ' assigned successfully.');
                 $saved = true;
             } else {
                 // Re-read with lock to prevent race condition
@@ -236,11 +247,12 @@ class Create extends Component
                 // For assign, show items with individual tracking that have available units
                 $query->where('tracking_method', 'individual')
                     ->whereHas('assetUnits', fn($q) => $q->where('unit_status', 'available'));
+                $items = $query->withCount(['assetUnits as available_units_count' => fn($q) => $q->where('unit_status', 'available')])
+                    ->orderBy('item_name')->limit(15)->get();
             } else {
                 $query->where('quantity_available', '>', 0);
+                $items = $query->orderBy('item_name')->limit(15)->get();
             }
-
-            $items = $query->orderBy('item_name')->limit(15)->get();
         }
 
         // Available asset units for the selected item (assign mode)
