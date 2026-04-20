@@ -7,6 +7,8 @@
     <title>Sign In - IIT Inventory</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="{{ asset('iit-logo.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('iit-logo.svg') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full font-sans antialiased">
@@ -15,11 +17,7 @@
         <div class="hidden lg:flex lg:w-1/2 lg:flex-col lg:justify-center lg:bg-slate-900 lg:px-12">
             <div class="mx-auto max-w-md">
                 <div class="flex items-center gap-3 mb-8">
-                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600">
-                        <svg class="h-7 w-7 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-                        </svg>
-                    </div>
+                    <img src="{{ asset('iit-logo.svg') }}" alt="IIT logo" class="h-12 w-12 rounded-xl object-cover">
                     <span class="text-2xl font-bold text-white">IIT Inventory</span>
                 </div>
                 <h1 class="text-4xl font-bold text-white leading-tight mb-4">
@@ -53,11 +51,7 @@
         <div class="flex w-full flex-col justify-center px-4 py-12 sm:px-6 lg:w-1/2 lg:px-12 bg-gray-50">
             <div class="mx-auto w-full max-w-sm">
                 <div class="lg:hidden flex items-center gap-3 mb-8 justify-center">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
-                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
-                        </svg>
-                    </div>
+                    <img src="{{ asset('iit-logo.svg') }}" alt="IIT logo" class="h-10 w-10 rounded-lg object-cover">
                     <span class="text-xl font-bold text-gray-900">IIT Inventory</span>
                 </div>
 

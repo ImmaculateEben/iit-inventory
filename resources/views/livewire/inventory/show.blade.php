@@ -134,6 +134,7 @@
             @endif
 
             {{-- Issues & Assignments --}}
+            @if($inventoryItem->issueRecords->count())
             <div class="rounded-xl bg-white shadow-sm border border-gray-100">
                 <div class="border-b border-gray-100 px-6 py-4"><h3 class="text-base font-semibold text-gray-900">Issues & Assignments ({{ $inventoryItem->issueRecords->count() }})</h3></div>
                 <div class="overflow-x-auto">
@@ -157,12 +158,12 @@
                                 <td class="px-6 py-3 text-sm text-gray-600">{{ $issue->issuedBy?->name ?? '—' }}</td>
                             </tr>
                             @empty
-                            <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400">No issue or assignment records yet.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
+            @endif
 
             {{-- Repair History --}}
             @if($inventoryItem->repairRecords->count())
@@ -197,6 +198,7 @@
             @endif
 
             {{-- Stock Adjustments --}}
+            @if($inventoryItem->stockAdjustments->count())
             <div class="rounded-xl bg-white shadow-sm border border-gray-100">
                 <div class="border-b border-gray-100 px-6 py-4"><h3 class="text-base font-semibold text-gray-900">Stock Adjustments ({{ $inventoryItem->stockAdjustments->count() }})</h3></div>
                 <div class="overflow-x-auto">
@@ -236,12 +238,12 @@
                                 @endif
                             </tr>
                             @empty
-                            <tr><td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400">No stock adjustments yet.</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
+            @endif
         </div>
 
         {{-- ============================================================== --}}

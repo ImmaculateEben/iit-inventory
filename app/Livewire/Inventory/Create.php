@@ -21,7 +21,7 @@ class Create extends Component
     protected function formStateFields(): array
     {
         return [
-            'item_code', 'item_name', 'description', 'item_type', 'tracking_method',
+            'item_code', 'codeManuallyEdited', 'item_name', 'description', 'item_type', 'tracking_method',
             'category_id', 'department_id', 'unit_of_measure',
             'manufacturer', 'model_number', 'supplier_donor',
             'purchase_date', 'purchase_cost', 'warranty_info', 'warranty_expiry', 'guarantee_info',
@@ -34,6 +34,7 @@ class Create extends Component
 
     // Basic Information
     public string $item_code = '';
+    public bool $codeManuallyEdited = false;
     public string $item_name = '';
     public string $description = '';
     public string $item_type = 'consumable';
@@ -80,7 +81,7 @@ class Create extends Component
     protected function rules(): array
     {
         $rules = [
-            'item_code' => 'nullable|string|max:50|unique:inventory_items,item_code',
+            'item_code' => 'required|string|max:50|unique:inventory_items,item_code',
             'item_name' => 'required|string|max:200',
             'description' => 'nullable|string',
             'item_type' => 'required|in:consumable,asset',
@@ -130,6 +131,42 @@ class Create extends Component
     public function mount(): void
     {
         $this->addAssetUnit();
+    }
+
+    public function updatedItemName(string $value): void
+    {
+        if (!$this->codeManuallyEdited && $value !== '') {
+            $this->item_code = $this->generateItemCode($value);
+        }
+    }
+
+    public function updatedItemCode(): void
+    {
+        $this->codeManuallyEdited = true;
+    }
+
+    private function generateItemCode(string $name): string
+    {
+        $words = array_values(array_filter(preg_split('/[\s\-_]+/', trim($name))));
+        $count = count($words);
+
+        if ($count >= 3) {
+            $code = collect($words)->take(3)->map(fn($w) => strtoupper(substr($w, 0, 3)))->implode('-');
+        } elseif ($count === 2) {
+            $code = strtoupper(substr($words[0], 0, 4)) . '-' . strtoupper(substr($words[1], 0, 3));
+        } else {
+            $code = strtoupper(substr(trim($name), 0, 6));
+        }
+        $code = substr($code, 0, 20);
+
+        $base = $code;
+        $i = 1;
+        while (\App\Models\InventoryItem::where('item_code', $code)->exists()) {
+            $suffix = '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
+            $code = substr($base, 0, 20 - strlen($suffix)) . $suffix;
+            $i++;
+        }
+        return $code;
     }
 
     public function addAssetUnit(): void

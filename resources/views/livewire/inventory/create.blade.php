@@ -22,8 +22,11 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {{-- Item Code --}}
                 <div>
-                    <label for="item_code" class="block text-sm font-medium text-gray-700 mb-1">Item Code</label>
+                    <label for="item_code" class="block text-sm font-medium text-gray-700 mb-1">Item Code <span class="text-red-500">*</span></label>
                     <input type="text" id="item_code" wire:model="item_code" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm" placeholder="e.g. IIT-LAP-001">
+                    @if($item_code && !$codeManuallyEdited)
+                        <p class="mt-1 text-xs text-blue-500">Auto-generated &mdash; you can edit this</p>
+                    @endif
                     @error('item_code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 

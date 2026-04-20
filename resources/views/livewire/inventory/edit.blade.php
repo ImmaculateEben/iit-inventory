@@ -23,6 +23,9 @@
                 <div>
                     <label for="item_code" class="block text-sm font-medium text-gray-700 mb-1">Item Code <span class="text-red-500">*</span></label>
                     <input type="text" id="item_code" wire:model="item_code" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
+                    @if($item_code && !$codeManuallyEdited)
+                        <p class="mt-1 text-xs text-blue-500">Auto-generated &mdash; you can edit this</p>
+                    @endif
                     @error('item_code') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
                 <div>
@@ -145,46 +148,6 @@
                         @endif
                         @error('size') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                     </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- ============================================================== --}}
-        {{-- SECTION 3: Procurement --}}
-        {{-- ============================================================== --}}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Procurement</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                    <label for="supplier_donor" class="block text-sm font-medium text-gray-700 mb-1">Supplier / Donor</label>
-                    <input type="text" id="supplier_donor" wire:model="supplier_donor" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('supplier_donor') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="purchase_date" class="block text-sm font-medium text-gray-700 mb-1">Purchase Date</label>
-                    <input type="date" id="purchase_date" wire:model="purchase_date" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('purchase_date') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="purchase_cost" class="block text-sm font-medium text-gray-700 mb-1">Purchase Cost (KES)</label>
-                    <input type="number" id="purchase_cost" wire:model="purchase_cost" step="0.01" min="0" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('purchase_cost') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="warranty_info" class="block text-sm font-medium text-gray-700 mb-1">Warranty Info</label>
-                    <input type="text" id="warranty_info" wire:model="warranty_info" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('warranty_info') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="warranty_expiry" class="block text-sm font-medium text-gray-700 mb-1">Warranty Expiry</label>
-                    <input type="date" id="warranty_expiry" wire:model="warranty_expiry" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('warranty_expiry') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label for="guarantee_info" class="block text-sm font-medium text-gray-700 mb-1">Guarantee Info</label>
-                    <input type="text" id="guarantee_info" wire:model="guarantee_info" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm">
-                    @error('guarantee_info') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
             </div>
         </div>

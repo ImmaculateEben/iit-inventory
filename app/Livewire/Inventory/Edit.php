@@ -16,6 +16,7 @@ class Edit extends Component
 
     // Basic Information
     public string $item_code = '';
+    public bool $codeManuallyEdited = true;
     public string $item_name = '';
     public string $description = '';
     public string $item_type = '';
@@ -106,6 +107,12 @@ class Edit extends Component
         $this->remarks = $inventoryItem->remarks ?? '';
         $this->is_active = (bool) $inventoryItem->is_active;
 
+        // If item has no code yet, auto-generate one from the name
+        if (empty($this->item_code) && !empty($this->item_name)) {
+            $this->item_code = $this->generateItemCode($this->item_name);
+            $this->codeManuallyEdited = false;
+        }
+
         // Load existing custom field values
         foreach ($inventoryItem->customFieldValues as $cfv) {
             $field = $cfv->customField;
@@ -146,6 +153,43 @@ class Edit extends Component
             'size' => 'nullable|string|max:100',
             'remarks' => 'nullable|string',
         ];
+    }
+
+    public function updatedItemName(string $value): void
+    {
+        if (!$this->codeManuallyEdited && $value !== '') {
+            $this->item_code = $this->generateItemCode($value);
+        }
+    }
+
+    public function updatedItemCode(): void
+    {
+        $this->codeManuallyEdited = true;
+    }
+
+    private function generateItemCode(string $name): string
+    {
+        $words = array_values(array_filter(preg_split('/[\s\-_]+/', trim($name))));
+        $count = count($words);
+
+        if ($count >= 3) {
+            $code = collect($words)->take(3)->map(fn($w) => strtoupper(substr($w, 0, 3)))->implode('-');
+        } elseif ($count === 2) {
+            $code = strtoupper(substr($words[0], 0, 4)) . '-' . strtoupper(substr($words[1], 0, 3));
+        } else {
+            $code = strtoupper(substr(trim($name), 0, 6));
+        }
+        $code = substr($code, 0, 20);
+
+        $base = $code;
+        $i = 1;
+        $existingId = $this->inventoryItem->id ?? null;
+        while (\App\Models\InventoryItem::where('item_code', $code)->where('id', '!=', $existingId)->exists()) {
+            $suffix = '-' . str_pad($i, 3, '0', STR_PAD_LEFT);
+            $code = substr($base, 0, 20 - strlen($suffix)) . $suffix;
+            $i++;
+        }
+        return $code;
     }
 
     public function addExtraField(): void
