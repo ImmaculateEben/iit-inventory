@@ -55,7 +55,7 @@ class Index extends Component
     {
         $users = User::with(['department', 'roles'])
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%")->orWhere('email', 'like', "%{$this->search}%"))
-            ->orderBy('name')->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->orderBy('name')->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
         return view('livewire.users.index', compact('users'))->layout('layouts.app');
     }
 }

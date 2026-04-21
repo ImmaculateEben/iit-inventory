@@ -44,6 +44,11 @@ class Index extends Component
             $this->sortBy = $column;
             $this->sortDir = 'asc';
         }
+
+        // Ensure sortDir is always a safe value regardless of client manipulation
+        if (!in_array($this->sortDir, ['asc', 'desc'], true)) {
+            $this->sortDir = 'asc';
+        }
     }
 
     public function render()
@@ -62,7 +67,7 @@ class Index extends Component
             ->when($this->filterType, fn($q) => $q->where('item_type', $this->filterType))
             ->when($this->filterCategory && ($catIds === null || in_array($this->filterCategory, $catIds)), fn($q) => $q->where('category_id', $this->filterCategory))
             ->when($this->filterDepartment && ($deptIds === null || in_array($this->filterDepartment, $deptIds)), fn($q) => $q->where('department_id', $this->filterDepartment))
-            ->orderBy(in_array($this->sortBy, $this->allowedSorts) ? $this->sortBy : 'item_name', $this->sortDir);
+            ->orderBy(in_array($this->sortBy, $this->allowedSorts) ? $this->sortBy : 'item_name', in_array($this->sortDir, ['asc', 'desc'], true) ? $this->sortDir : 'asc');
 
         // Scope filter dropdowns to accessible items
         $departmentQuery = \App\Models\Department::orderBy('name');
@@ -76,7 +81,7 @@ class Index extends Component
         }
 
         return view('livewire.inventory.index', [
-            'items' => $query->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage),
+            'items' => $query->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250)),
             'categories' => $categoryQuery->get(),
             'departments' => $departmentQuery->get(),
         ])->layout('layouts.app');

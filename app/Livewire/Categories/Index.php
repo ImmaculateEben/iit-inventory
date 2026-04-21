@@ -18,7 +18,7 @@ class Index extends Component
     {
         $categories = Category::withCount('inventoryItems')
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-            ->orderBy('name')->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->orderBy('name')->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
         return view('livewire.categories.index', compact('categories'))->layout('layouts.app');
     }
 }

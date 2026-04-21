@@ -29,7 +29,7 @@ class Index extends Component
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")->orWhere('item_code', 'like', "%{$this->search}%")))
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->latest()
-            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
 
         return view('livewire.repairs.index', compact('repairs'))->layout('layouts.app');
     }

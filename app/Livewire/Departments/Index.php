@@ -21,7 +21,7 @@ class Index extends Component
         $departments = Department::withCount('inventoryItems')
             ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
-            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
 
         return view('livewire.departments.index', compact('departments'))->layout('layouts.app');
     }

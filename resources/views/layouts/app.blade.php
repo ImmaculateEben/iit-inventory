@@ -12,7 +12,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 </head>
-<body class="h-full font-sans antialiased" x-data="{ sidebarOpen: false }">
+<body class="h-full font-sans antialiased" x-data="{ sidebarOpen: false }" x-effect="document.body.classList.toggle('overflow-hidden', sidebarOpen)">
     <div class="min-h-full">
         {{-- Mobile sidebar overlay --}}
         <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300"

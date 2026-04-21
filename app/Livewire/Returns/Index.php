@@ -27,7 +27,7 @@ class Index extends Component
             ->when($catIds !== null, fn($q) => $q->whereHas('inventoryItem', fn($iq) => $iq->whereIn('category_id', $catIds)))
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
             ->latest('returned_at')
-            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
 
         return view('livewire.returns.index', compact('returns'))->layout('layouts.app');
     }

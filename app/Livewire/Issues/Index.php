@@ -30,7 +30,7 @@ class Index extends Component
             ->when($this->search, fn($q) => $q->whereHas('inventoryItem', fn($q2) => $q2->where('item_name', 'like', "%{$this->search}%")))
             ->when($this->filterType, fn($q) => $q->where('action_type', $this->filterType))
             ->latest('issued_at')
-            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
 
         return view('livewire.issues.index', compact('issues'))->layout('layouts.app');
     }

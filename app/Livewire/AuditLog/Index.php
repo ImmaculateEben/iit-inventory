@@ -33,7 +33,7 @@ class Index extends Component
                    ->orWhereHas('user', fn($q2) => $q2->where('name', 'like', "%{$this->search}%"));
             }))
             ->when($this->filterAction, fn($q) => $q->where('action_code', $this->filterAction))
-            ->latest('created_at')->paginate($this->perPage === 'all' ? PHP_INT_MAX : $this->perPage);
+            ->latest('created_at')->paginate($this->perPage === 'all' ? PHP_INT_MAX : min((int) $this->perPage, 250));
 
         $actionsQuery = AuditLog::select('action_code')->distinct()->orderBy('action_code');
         if (!$user->isAdmin()) {
