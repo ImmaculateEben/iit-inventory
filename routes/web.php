@@ -30,6 +30,7 @@ use App\Livewire\Roles\Index as RolesIndex;
 use App\Livewire\Roles\Create as RolesCreate;
 use App\Livewire\Roles\Edit as RolesEdit;
 use App\Livewire\AuditLog\Index as AuditLogIndex;
+use App\Livewire\Settings;
 use Illuminate\Support\Facades\Route;
 
 // Guest routes
@@ -89,4 +90,7 @@ Route::middleware(['auth', 'active', 'throttle:60,1'])->group(function () {
 
     // Audit Log
     Route::get('/audit-log', AuditLogIndex::class)->name('audit-log.index')->middleware('permission:view_audit_log');
+
+    // Settings (all authenticated users)
+    Route::get('/settings', Settings::class)->name('settings');
 });
